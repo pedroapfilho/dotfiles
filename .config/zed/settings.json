@@ -1,0 +1,31 @@
+{
+  "context_servers": {
+
+  },
+  "project_panel": {
+    "dock": "left"
+  },
+  "theme": "Dracula Pro",
+  "agent": {
+    "default_profile": "write",
+    "default_model": {
+      "provider": "zed.dev",
+      "model": "claude-opus-4-1"
+    },
+    "model_parameters": [],
+    "always_allow_tool_actions": true
+  },
+  "vim_mode": true,
+  "ui_font_family": "MonoLisa Nerd Font",
+  "ui_font_features": {
+    "calt": true,
+    "liga": true,
+    "zero": true,
+    "ss02": true
+  },
+  "ui_font_size": 12,
+  "buffer_font_size": 12,
+  "minimap": {
+    "show": "auto"
+  }
+}

@@ -1,0 +1,14 @@
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+[commit]
+	gpgsign = true
+[user]
+	signingkey = signingkey
+	name = Your Name
+	email = your@email.com
+[push]
+	autoSetupRemote = true
+[core]
+	excludesfile = /Users/USER_NAME/.gitignore
