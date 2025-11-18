@@ -18,17 +18,6 @@
           }
         ]
       }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "pnpm dlx prettier --write \"$FILE_PATH\""
-          }
-        ]
-      }
     ]
   }
 }

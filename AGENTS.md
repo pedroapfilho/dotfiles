@@ -11,6 +11,7 @@ This document contains mandatory and recommended guidelines for software develop
 - MUST: Always prefer editing an existing file over creating a new one
 - NEVER: Create files unless absolutely necessary for achieving the goal
 - NEVER: Proactively create documentation files (`*.md`, `README`, etc.) unless explicitly requested
+- MUST: Use context7 when I need code generation, setup or configuration steps, or library/api documentation. This means you should automatically use the Context7 MCP tools to resolve library id and get library docs without me having to explicitly ask.
 
 ---
 
