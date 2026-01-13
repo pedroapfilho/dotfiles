@@ -307,6 +307,7 @@ if (isValid && isAllowed && isSecure) {
 - MUST: Provide full keyboard support per [WAI-ARIA APG](https://www.w3.org/WAI/ARIA/apg/patterns/)
 - MUST: Show visible focus rings (`:focus-visible`; group with `:focus-within`)
 - MUST: Manage focus (trap, move, return) per APG patterns
+- SHOULD: Internationalize keyboard shortcuts for non-QWERTY layouts; show platform-specific symbols
 
 **Targets & Input**
 - MUST: Hit targets ≥24px (mobile ≥44px); if visual <24px, expand hit area
@@ -321,17 +322,22 @@ if (isValid && isAllowed && isSecure) {
 **Inputs & Forms (Behavior)**
 - MUST: Use hydration-safe inputs (no lost focus/value)
 - MUST: Show spinner on loading buttons and keep original label
+- MUST: Add show-delay (~150–300ms) and minimum visible time (~300–500ms) for spinners/skeletons to avoid flicker
 - MUST: Enter submits focused text input; in `<textarea>`, ⌘/Ctrl+Enter submits, Enter adds newline
 - MUST: Keep submit enabled until request starts; then disable, show spinner, use idempotency key
 - MUST: Accept free text and validate after—don't block typing
 - MUST: Allow submitting incomplete forms to surface validation
 - MUST: Show errors inline next to fields; on submit, focus first error
 - MUST: Use `autocomplete` + meaningful `name`; correct `type` and `inputmode`
+- MUST: Every control has a `<label>` or is associated with one for assistive tech
+- MUST: Clicking a `<label>` focuses the associated control
 - MUST: Warn on unsaved changes before navigation
 - MUST: Be compatible with password managers & 2FA; allow pasting one-time codes
 - MUST: Trim values to handle text expansion trailing spaces
 - MUST: No dead zones on checkboxes/radios—label+control share one generous hit target
+- MUST: On Windows, explicitly set `background-color` and `color` on native `<select>` for dark-mode
 - NEVER: Block paste in `<input>`/`<textarea>`
+- NEVER: Trigger password managers for non-auth fields—use `autocomplete="off"` for search, etc.
 - SHOULD: Disable spellcheck for emails/codes/usernames
 - SHOULD: Placeholders end with ellipsis and show example pattern (e.g., `+1 (123) 456-7890`, `sk-012345…`)
 
@@ -363,17 +369,22 @@ if (isValid && isAllowed && isSecure) {
 - MUST: Animate compositor-friendly props (`transform`, `opacity`); avoid layout/repaint props (`top`/`left`/`width`/`height`)
 - MUST: Animations are interruptible and input-driven
 - MUST: Use correct `transform-origin` (motion starts where it "physically" should)
+- MUST: Apply CSS transforms/animations to `<g>` wrappers for SVG; set `transform-box: fill-box; transform-origin: center;`
 - SHOULD: Prefer CSS > Web Animations API > JS libraries
 - SHOULD: Animate only to clarify cause/effect or add deliberate delight
 - SHOULD: Choose easing to match the change (size/distance/trigger)
+- SHOULD: Animate wrappers instead of text nodes to avoid anti-aliasing artifacts; use `translateZ(0)` if needed
 - NEVER: Use autoplay animations
+- NEVER: Use `transition: all`—explicitly list only intended properties (`opacity`, `transform`)
 
 ### 9.3 Layout
 
 - MUST: Use deliberate alignment to grid/baseline/edges/optical centers—no accidental placement
 - MUST: Verify layouts on mobile, laptop, and ultra-wide (simulate ultra-wide at 50% zoom)
 - MUST: Respect safe areas (use `env(safe-area-inset-*)`)
-- MUST: Avoid unwanted scrollbars; fix overflows
+- MUST: Avoid unwanted scrollbars; fix overflows (on macOS, set "Show scroll bars" to "Always" to test Windows behavior)
+- MUST: Set `color-scheme: dark` on `<html>` in dark themes for proper scrollbar/device UI contrast
+- MUST: Let the browser size things—prefer flex/grid/intrinsic layout over measuring in JS
 - SHOULD: Use optical alignment; adjust by ±1px when perception beats geometry
 - SHOULD: Balance icon/text lockups (stroke/weight/size/spacing/color)
 
@@ -381,9 +392,10 @@ if (isValid && isAllowed && isSecure) {
 
 **Content**
 - MUST: Use the ellipsis character `…` (not `...`)
-- MUST: Use non-breaking spaces to glue terms: `10&nbsp;MB`, `⌘&nbsp;+&nbsp;K`, `Vercel&nbsp;SDK`
+- MUST: Use non-breaking spaces to glue terms: `10&nbsp;MB`, `⌘&nbsp;+&nbsp;K`, `Vercel&nbsp;SDK`; use `&#x2060;` for no space
 - MUST: Make content resilient to user-generated content (short/avg/very long)
 - MUST: Use locale-aware dates/times/numbers/currency
+- MUST: Prefer language settings over location—detect via `Accept-Language` header and `navigator.languages`, not IP/GPS
 - MUST: Design empty/sparse/dense/error states
 - MUST: No dead ends—always offer next step/recovery
 - SHOULD: Inline help first; tooltips last resort
@@ -416,10 +428,14 @@ if (isValid && isAllowed && isSecure) {
 **Optimization**
 - MUST: Batch layout reads/writes; avoid unnecessary reflows/repaints
 - MUST: Mutations (`POST`/`PATCH`/`DELETE`) target <500ms
-- MUST: Virtualize large lists (e.g., `virtua`)
+- MUST: Virtualize large lists (e.g., `virtua`) or use `content-visibility: auto`
 - MUST: Preload only above-the-fold images; lazy-load the rest
 - MUST: Prevent CLS from images (explicit dimensions or reserved space)
+- MUST: Use `<link rel="preconnect">` for CDN/asset domains (with `crossorigin` when needed)
+- MUST: Preload critical fonts to avoid flash and layout shift
+- MUST: Move expensive/long tasks to Web Workers to avoid blocking the main thread
 - SHOULD: Prefer uncontrolled inputs; make controlled loops cheap (keystroke cost)
+- SHOULD: Subset fonts—ship only needed code points via `unicode-range`; limit variable axes
 
 ### 9.6 Design
 
@@ -427,12 +443,27 @@ if (isValid && isAllowed && isSecure) {
 - MUST: Meet contrast requirements—prefer [APCA](https://apcacontrast.com/) over WCAG 2
 - MUST: Increase contrast on `:hover`/`:active`/`:focus`
 - MUST: Use accessible charts (color-blind-friendly palettes)
+- MUST: Set `<meta name="theme-color" content="#...">` to match page background
 - SHOULD: Use layered shadows (ambient + direct)
 - SHOULD: Use crisp edges via semi-transparent borders + shadows
 - SHOULD: Use nested radii: child ≤ parent; concentric
 - SHOULD: Maintain hue consistency: tint borders/shadows/text toward bg hue
 - SHOULD: Match browser UI to background
 - SHOULD: Avoid gradient banding (use masks when needed)
+
+---
+
+### 9.7 Copywriting
+
+- MUST: Use active voice ("Install the CLI" not "The CLI will be installed")
+- MUST: Error messages guide the exit—don't just state what's wrong, tell users how to fix it
+- MUST: Avoid ambiguous labels ("Save API Key" not "Continue")
+- MUST: Use consistent placeholders—strings: `YOUR_API_TOKEN_HERE`, numbers: `0123456789`
+- SHOULD: Use numerals for counts ("8 deployments" not "eight deployments")
+- SHOULD: Separate numbers and units with non-breaking space (`10&nbsp;MB`)
+- SHOULD: Be clear and concise—use as few words as possible
+- SHOULD: Use action-oriented language ("Install the CLI…" not "You will need the CLI…")
+- SHOULD: Frame messages positively, even for errors ("Something went wrong—try again or contact support")
 
 ---
 
