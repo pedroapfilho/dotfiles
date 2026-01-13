@@ -54,8 +54,8 @@ fi
 # Setup fnm (Fast Node Manager)
 echo "🚀 Setting up fnm..."
 if command_exists fnm; then
-    fnm install 22
-    fnm default 22
+    fnm install 24
+    fnm default 24
 fi
 
 # Install pnpm
@@ -71,29 +71,15 @@ npm install -g corepack
 # Create necessary directories
 echo "📁 Creating necessary directories..."
 mkdir -p ~/.claude
-mkdir -p ~/.claude/agents
-mkdir -p ~/.claude/hooks
-mkdir -p ~/.claude/commands
 mkdir -p ~/.config/zed
-mkdir -p ~/.local/bin
 
 # Copy configuration files
 echo "📋 Copying configuration files..."
 
-# Backup existing files if they exist
-[ -f ~/.zshrc ] && mv ~/.zshrc ~/.zshrc.backup
-[ -f ~/.gitconfig ] && mv ~/.gitconfig ~/.gitconfig.backup
-[ -f ~/.gitignore ] && mv ~/.gitignore ~/.gitignore.backup
-[ -f ~/.claude.json ] && mv ~/.claude.json ~/.claude.json.backup
-[ -f ~/.claude/settings.json ] && mv ~/.claude/settings.json ~/.claude/settings.json.backup
-[ -f ~/.config/zed/settings.json ] && mv ~/.config/zed/settings.json ~/.config/zed/settings.json.backup
-[ -f ~/.config/zed/keymap.json ] && mv ~/.config/zed/keymap.json ~/.config/zed/keymap.json.backup
-
 # Copy new configuration files
 cp .zshrc ~/.zshrc
 cp .gitconfig ~/.gitconfig
-cp .gitignore ~/.gitignore
-cp .claude.json ~/.claude.json
+cp .gitignore ~/.gitignoreZ
 cp .claude/settings.json ~/.claude/settings.json
 
 # Copy CLAUDE.md if it exists
@@ -101,25 +87,9 @@ if [ -f CLAUDE.md ]; then
     cp CLAUDE.md ~/.claude/CLAUDE.md
 fi
 
-# Copy agents if they exist
-if [ -d .claude/agents ]; then
-    cp -r .claude/agents/* ~/.claude/agents/
-fi
-
-# Copy hooks if they exist
-if [ -d .claude/hooks ]; then
-    cp -r .claude/hooks/* ~/.claude/hooks/
-fi
-
-# Copy commands if they exist
-if [ -d .claude/commands ]; then
-    cp -r .claude/commands/* ~/.claude/commands/
-fi
-
-# Copy Zed configuration if it exists
-if [ -d .config/zed ]; then
-    cp .config/zed/settings.json ~/.config/zed/settings.json
-    cp .config/zed/keymap.json ~/.config/zed/keymap.json
+# Copy AGENTS.md if it exists
+if [ -f AGENTS.md ]; then
+    cp AGENTS.md ~/AGENTS.md
 fi
 
 echo ""
@@ -128,13 +98,6 @@ echo ""
 echo "📝 In ~/.zshrc:"
 echo "   - GITHUB_TOKEN"
 echo "   - NPM_TOKEN"
-echo ""
-echo "📝 In ~/.claude.json (mcpServers section):"
-echo "   - CONTEXT7_API_KEY (context7 server)"
-echo "   - OPENAI_API_KEY (zen server)"
-echo "   - GEMINI_API_KEY (zen server)"
-echo "   - XAI_API_KEY (zen server)"
-echo "   - GitHub PAT token (github server Authorization header)"
 echo ""
 echo "📝 Also update your git config with your personal information if needed"
 echo ""

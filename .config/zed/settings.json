@@ -1,31 +1,64 @@
 {
-  "context_servers": {
-
+  "icon_theme": "Zed (Default)",
+  "show_edit_predictions": true,
+  "redact_private_values": false,
+  "colorize_brackets": true,
+  "disable_ai": false,
+  "agent_buffer_font_size": 11,
+  "git_panel": {
+    "sort_by_path": true,
   },
+  "context_servers": {},
   "project_panel": {
-    "dock": "left"
+    "dock": "left",
   },
   "theme": "Dracula Pro",
-  "agent": {
-    "default_profile": "write",
-    "default_model": {
-      "provider": "zed.dev",
-      "model": "claude-opus-4-1"
+  "agent_servers": {
+    "claude": {
+      "default_mode": "bypassPermissions",
     },
-    "model_parameters": [],
-    "always_allow_tool_actions": true
+    "codex": {
+      "args": ["--yolo", "--search"],
+    },
   },
   "vim_mode": true,
+  "soft_wrap": "editor_width",
+  "buffer_line_height": "comfortable",
+  "buffer_font_family": "MonoLisa Nerd Font",
+  "buffer_font_features": {
+    "calt": true,
+    "liga": true,
+    "zero": true,
+    "ss02": true,
+  },
+  "buffer_font_size": 11,
+  "agent_ui_font_size": 11,
   "ui_font_family": "MonoLisa Nerd Font",
   "ui_font_features": {
     "calt": true,
     "liga": true,
     "zero": true,
-    "ss02": true
+    "ss02": true,
   },
-  "ui_font_size": 12,
-  "buffer_font_size": 12,
+  "ui_font_size": 11,
   "minimap": {
-    "show": "auto"
-  }
+    "show": "auto",
+  },
+  "languages": {
+    "Rust": {
+      "inlay_hints": {
+        "enabled": true,
+      },
+    },
+    "CSS": {
+      "language_servers": ["tailwindcss-language-server"],
+    },
+  },
+  "lsp": {
+    "eslint": {
+      "settings": {
+        "onIgnoredFiles": "off",
+      },
+    },
+  },
 }

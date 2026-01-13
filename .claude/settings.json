@@ -2,33 +2,36 @@
   "env": {
     "DISABLE_ZOXIDE": "1"
   },
+  "includeCoAuthoredBy": false,
+  "hooks": {},
   "statusLine": {
     "type": "command",
     "command": "input=$(cat); cd \"$(echo \"$input\" | jq -r '.workspace.current_dir')\"; branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'no-git'); printf '\\033[2m%s@%s:\\033[0m\\033[36m%s\\033[0m \\033[33m(%s)\\033[0m \\033[2m[%s]\\033[0m' \"$(whoami)\" \"$(hostname -s)\" \"$(echo \"$input\" | jq -r '.workspace.current_dir' | sed \"s|^$HOME|~|\" | sed 's|.*/||')\" \"$branch\" \"$(echo \"$input\" | jq -r '.model.display_name')\""
   },
-  "includeCoAuthoredBy": false,
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ~/.claude/hooks/pre-tool-use.js"
-          }
-        ]
+  "enabledPlugins": {
+    "frontend-design@claude-code-plugins": true,
+    "code-review@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "explanatory-output-style@claude-plugins-official": true,
+    "figma@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "greptile@claude-plugins-official": true,
+    "learning-output-style@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "ralph-wiggum@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "sentry@claude-plugins-official": true,
+    "vercel@claude-plugins-official": true
+  },
+  "alwaysThinkingEnabled": true,
+  "mcpServers": {
+    "playwriter": {
+      "command": "npx",
+      "args": ["playwriter@latest"],
+      "env": {
+        "PLAYWRITER_AUTO_ENABLE": "1"
       }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx prettier --write $CLAUDE_FILE_PATHS 2>/dev/null || true"
-          }
-        ]
-      }
-    ]
+    }
   }
 }
