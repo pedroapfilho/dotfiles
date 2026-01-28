@@ -208,9 +208,9 @@ if (isValid && isAllowed && isSecure) {
 
 ### 6.3 Development Process
 
-1. **Plan**: Write a detailed plan with acceptance criteria
-2. **Implement**: Build the feature
-3. **Review**: Conduct thorough code review with security/performance lens
+- MUST: Write a detailed plan with acceptance criteria before implementation
+- MUST: Build features incrementally and test at each step
+- MUST: Conduct thorough code review with security/performance lens
 
 ### 6.4 Communication & Collaboration
 
@@ -240,11 +240,11 @@ if (isValid && isAllowed && isSecure) {
 
 ### 7.1 Systematic Debugging
 
-**When Stuck, Request Diagnostic Report Covering:**
-1. Files modified in the current session
-2. Role of each file in the feature
-3. Root cause analysis of current issues
-4. Multiple debugging approaches
+**When Stuck:**
+- MUST: Identify files modified in the current session
+- MUST: Understand the role of each file in the feature
+- MUST: Perform root cause analysis of current issues
+- MUST: Consider multiple debugging approaches before proceeding
 
 ### 7.2 Development Tools
 
@@ -255,11 +255,11 @@ if (isValid && isAllowed && isSecure) {
 
 ### 7.3 Debugging Workflow
 
-1. Identify the issue precisely
-2. Gather all relevant information
-3. Form hypotheses about the cause
-4. Test each hypothesis systematically
-5. Document the solution for future reference
+- MUST: Identify the issue precisely before attempting fixes
+- MUST: Gather all relevant information (logs, stack traces, reproduction steps)
+- MUST: Form hypotheses about the cause based on evidence
+- MUST: Test each hypothesis systematically
+- SHOULD: Document the solution for future reference
 
 ---
 
@@ -282,11 +282,11 @@ if (isValid && isAllowed && isSecure) {
 
 ### 8.3 Review Process
 
-1. Understand the context and requirements
-2. Check for functional correctness
-3. Evaluate code quality and maintainability
-4. Verify security and performance considerations
-5. Provide constructive feedback with specific examples
+- MUST: Understand the context and requirements before reviewing
+- MUST: Check for functional correctness
+- MUST: Evaluate code quality and maintainability
+- MUST: Verify security and performance considerations
+- MUST: Provide constructive feedback with specific examples
 
 ### 8.4 What to Look For
 
