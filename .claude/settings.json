@@ -25,13 +25,5 @@
     "vercel@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
-  "mcpServers": {
-    "playwriter": {
-      "command": "npx",
-      "args": ["playwriter@latest"],
-      "env": {
-        "PLAYWRITER_AUTO_ENABLE": "1"
-      }
-    }
-  }
+  "mcpServers": {}
 }
