@@ -12,3 +12,9 @@
 	autoSetupRemote = true
 [core]
 	excludesfile = /Users/USER_NAME/.gitignore
+[pull]
+	ff = only
+[lfs "customtransfer.xet"]
+	path = git-xet
+	args = transfer
+	concurrent = true

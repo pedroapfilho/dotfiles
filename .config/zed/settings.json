@@ -1,4 +1,29 @@
 {
+  "buffer_font_size": 11.0,
+  "ssh_connections": [
+    {
+      "host": "thinkcentre-1",
+      "args": [],
+      "projects": [
+        {
+          "paths": [
+            "/home/pedroapfilho"
+          ]
+        }
+      ]
+    },
+    {
+      "host": "itx-1",
+      "args": [],
+      "projects": [
+        {
+          "paths": [
+            "/home/pedroapfilho/ACE-Step-1.5"
+          ]
+        }
+      ]
+    }
+  ],
   "icon_theme": "Zed (Default)",
   "show_edit_predictions": true,
   "redact_private_values": false,
@@ -31,7 +56,6 @@
     "zero": true,
     "ss02": true,
   },
-  "buffer_font_size": 11,
   "agent_ui_font_size": 11,
   "ui_font_family": "MonoLisa Nerd Font",
   "ui_font_features": {

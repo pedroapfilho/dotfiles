@@ -15,9 +15,7 @@ source $ZSH/oh-my-zsh.sh
 # User configuration
 
 # Aliases
-alias gtr="cd \$(git rev-parse --show-toplevel)"
-alias gk="gitkraken -p ."
-alias up="softwareupdate -l && brew update && brew upgrade && brew cleanup && pnpm self-update && pnpm -g upgrade"
+alias up="softwareupdate -l && brew update && brew upgrade && brew cleanup && pnpm -g upgrade"
 alias yolo="git add . && git commit --amend --no-edit && git push --force-with-lease"
 alias python="python3"
 alias pip="pip3"
@@ -25,6 +23,7 @@ unalias gk 2>/dev/null
 alias lfg="claude -p 'Review my current branch and the most recent commit. Provide a detailed summary of all changes, including what was modified, added or removed. Analyze the overall impact and quality of the changes.'"
 alias peek="claude -p 'Review my changes and give me your opinion, as a senior software engineer, on the quality and impact of the changes. Also, suggest any improvements or optimizations that could be made to the code.'"
 
+eval "$(zoxide init zsh)"
 if [ -z "$DISABLE_ZOXIDE" ]; then
     eval "$(zoxide init --cmd cd zsh)"
 fi
@@ -47,9 +46,6 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 
-# zoxide
-eval "$(zoxide init zsh)"
-
 # fnm
 FNM_PATH="/Users/pedroapfilho/Library/Application Support/fnm"
 if [ -d "$FNM_PATH" ]; then
@@ -64,3 +60,15 @@ if [ -f '/Users/pedroapfilho/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . 
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/pedroapfilho/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/pedroapfilho/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+export PATH="$PATH":~/.local/bin
+
+autoload -Uz compinit
+compinit
+. <(cs gen-autocomplete zsh)
+
+# bun completions
+[ -s "/Users/pedroapfilho/.bun/_bun" ] && source "/Users/pedroapfilho/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"

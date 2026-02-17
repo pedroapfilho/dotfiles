@@ -1,6 +1,6 @@
 [
   {
-    "context": "Editor && vim_mode != insert",
+    "context": "Editor && (vim_mode == normal || vim_mode == visual)",
     "bindings": {
       "shift-j": ["workspace::SendKeystrokes", "5 j"],
       "shift-k": ["workspace::SendKeystrokes", "5 k"]
