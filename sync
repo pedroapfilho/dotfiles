@@ -40,7 +40,6 @@ SECRET_PATTERNS='ghp_[A-Za-z0-9]|github_pat_[A-Za-z0-9]|npm_[A-Za-z0-9]{10}|sk-[
 MAPPINGS=(
   ".zshrc:${HOME_DIR}/.zshrc:sensitive"
   ".gitconfig:${HOME_DIR}/.gitconfig:sensitive"
-  ".gitignore:${HOME_DIR}/.gitignore:copy"
   ".claude/settings.json:${HOME_DIR}/.claude/settings.json:copy"
   ".claude/mcp.json:${HOME_DIR}/.claude/mcp.json:copy"
   ".claude/agents/backend-architect.md:${HOME_DIR}/.claude/agents/backend-architect.md:copy"
@@ -56,6 +55,7 @@ MAPPINGS=(
   ".config/zed/keymap.json:${HOME_DIR}/.config/zed/keymap.json:copy"
   ".config/spaceship.zsh:${HOME_DIR}/.config/spaceship.zsh:copy"
   ".config/git/ignore:${HOME_DIR}/.config/git/ignore:copy"
+  ".config/counselors/config.json:${HOME_DIR}/.config/counselors/config.json:copy"
   ".ssh/config:${HOME_DIR}/.ssh/config:sensitive"
 )
 
@@ -718,6 +718,90 @@ sync_agents_md() {
 }
 
 # ─────────────────────────────────────────────────
+# Claude Code skills tracking
+# ─────────────────────────────────────────────────
+
+SKILLS_FILE="${REPO_DIR}/skills.txt"
+SKILLS_DIR="${HOME_DIR}/.claude/skills"
+
+sync_skills() {
+  local direction="$1"
+
+  case "$direction" in
+    pull)
+      if [[ ! -d "$SKILLS_DIR" ]]; then
+        printf "  ${DIM}= skills (none installed)${RESET}\n"
+        return
+      fi
+
+      local names=()
+      for link in "${SKILLS_DIR}"/*/; do
+        [[ -d "$link" ]] || continue
+        names+=("$(basename "$link")")
+      done
+
+      if (( ${#names[@]} == 0 )); then
+        printf "  ${DIM}= skills (none installed)${RESET}\n"
+        return
+      fi
+
+      printf '%s\n' "${names[@]}" | sort > "$SKILLS_FILE"
+      printf "  ${GREEN}✓${RESET} Saved %d skill names to skills.txt\n" "${#names[@]}"
+      ;;
+
+    push)
+      if [[ ! -f "$SKILLS_FILE" ]]; then
+        return
+      fi
+
+      local missing=()
+      while IFS= read -r skill || [[ -n "$skill" ]]; do
+        [[ -z "$skill" || "$skill" == \#* ]] && continue
+        if [[ ! -d "${SKILLS_DIR}/${skill}" ]]; then
+          missing+=("$skill")
+        fi
+      done < "$SKILLS_FILE"
+
+      if (( ${#missing[@]} == 0 )); then
+        printf "  ${DIM}= skills (all %d installed)${RESET}\n" "$(wc -l < "$SKILLS_FILE" | tr -d ' ')"
+      else
+        printf "  ${YELLOW}⚠${RESET} %d missing skills — install with:\n" "${#missing[@]}"
+        for skill in "${missing[@]}"; do
+          printf "    ${DIM}claude install-skill %s${RESET}\n" "$skill"
+        done
+      fi
+      ;;
+
+    status)
+      if [[ ! -f "$SKILLS_FILE" ]]; then
+        printf "%-45s ${DIM}%-6s${RESET} " "skills.txt" "list"
+        printf "${RED}✗ missing in repo${RESET}\n"
+        return
+      fi
+
+      local total installed=0 missing=0
+      total="$(wc -l < "$SKILLS_FILE" | tr -d ' ')"
+
+      while IFS= read -r skill || [[ -n "$skill" ]]; do
+        [[ -z "$skill" || "$skill" == \#* ]] && continue
+        if [[ -d "${SKILLS_DIR}/${skill}" ]]; then
+          ((installed++))
+        else
+          ((missing++))
+        fi
+      done < "$SKILLS_FILE"
+
+      printf "%-45s ${DIM}%-6s${RESET} " "skills.txt" "list"
+      if (( missing == 0 )); then
+        printf "${GREEN}✓ %d skills synced${RESET}\n" "$total"
+      else
+        printf "${YELLOW}~ %d/%d installed (%d missing)${RESET}\n" "$installed" "$total" "$missing"
+      fi
+      ;;
+  esac
+}
+
+# ─────────────────────────────────────────────────
 # Status table
 # ─────────────────────────────────────────────────
 
@@ -741,6 +825,8 @@ print_status_table() {
     status_color "$agents_status"
     printf "\n"
   fi
+
+  sync_skills "status"
 
   check_agents_symlink
   print_secrets_status
@@ -885,6 +971,7 @@ batch_push() {
   done
 
   sync_agents_md "push"
+  sync_skills "push"
 
   printf "\n${BOLD}Done:${RESET} ${GREEN}%d synced${RESET}, ${YELLOW}%d skipped${RESET}, ${RED}%d errors${RESET}\n" "$SYNCED" "$SKIPPED" "$ERRORS"
 }
@@ -917,6 +1004,7 @@ batch_pull() {
   done
 
   sync_agents_md "pull"
+  sync_skills "pull"
 
   printf "\n${BOLD}Done:${RESET} ${GREEN}%d synced${RESET}, ${YELLOW}%d skipped${RESET}, ${RED}%d errors${RESET}\n" "$SYNCED" "$SKIPPED" "$ERRORS"
 }
