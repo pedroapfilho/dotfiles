@@ -13,13 +13,13 @@
     "code-review@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
     "explanatory-output-style@claude-plugins-official": true,
-    "figma@claude-plugins-official": true,
     "greptile@claude-plugins-official": true,
     "learning-output-style@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "sentry@claude-plugins-official": true,
-    "vercel@claude-plugins-official": true
+    "vercel@claude-plugins-official": true,
+    "figma@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
   "skipDangerousModePermissionPrompt": true

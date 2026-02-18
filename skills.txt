@@ -1,0 +1,15 @@
+agent-browser
+agent-tail
+better-auth-best-practices
+email-and-password-best-practices
+find-skills
+react-doctor
+react-router-data-mode
+react-router-declarative-mode
+react-router-framework-mode
+remotion-best-practices
+ripgrep
+seo-audit
+typefully
+vercel-react-best-practices
+web-design-guidelines
