@@ -1,0 +1,22 @@
+# 1Password references and default values for initial machine setup
+#
+# These are used when the "Dotfiles Sync" 1Password item is empty
+# (e.g., first push on a brand new machine).
+#
+# Values starting with op:// are resolved via `op read`.
+# Everything else is used as a literal value.
+#
+# Format: key = value_or_op_reference
+
+[zshrc]
+# NPM_TOKEN = op://Personal/npm/credential
+# GITHUB_TOKEN = op://Personal/GitHub PAT/credential
+
+[gitconfig]
+# name = Your Name
+# email = your@email.com
+# signingkey = op://Personal/SSH Key/public key
+# excludesfile = /Users/your_username/.gitignore
+
+[codex]
+# CONTEXT7_API_KEY = op://Personal/Context7/credential

@@ -9,6 +9,10 @@ REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 HOME_DIR="$HOME"
 VAULT_DIR="${REPO_DIR}/.sync_vault"
 
+# 1Password config
+OP_ITEM="Dotfiles Sync"
+OP_VAULT="${DOTFILES_OP_VAULT:-Personal}"
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -23,7 +27,10 @@ SYNCED=0
 SKIPPED=0
 ERRORS=0
 
-# Token patterns to detect secrets (safety net validation)
+# Secrets backend: "op" or "file"
+SECRETS_BACKEND=""
+
+# Token patterns to detect secrets (safety net)
 SECRET_PATTERNS='ghp_[A-Za-z0-9]|github_pat_[A-Za-z0-9]|npm_[A-Za-z0-9]{10}|sk-[A-Za-z0-9]{10}|ctx7sk-[A-Za-z0-9]|ghs_[A-Za-z0-9]|glpat-[A-Za-z0-9]|xox[bpsar]-[A-Za-z0-9]|ssh-ed25519 AAAA[A-Za-z0-9]'
 
 # ─────────────────────────────────────────────────
@@ -135,17 +142,65 @@ is_token_var() {
 }
 
 # ─────────────────────────────────────────────────
-# Vault — persists real token values across syncs
-#
-# Structure:
-#   .sync_vault/
-#     zshrc/GITHUB_TOKEN    (raw export lines)
-#     zshrc/NPM_TOKEN
-#     gitconfig/signingkey  (value only)
-#     gitconfig/name
-#     gitconfig/email
-#     gitconfig/excludesfile
-#     codex/CONTEXT7_API_KEY
+# 1Password CLI backend
+# ─────────────────────────────────────────────────
+
+OP_ITEM_ENSURED=false
+
+op_check() {
+  if ! command -v op &>/dev/null; then
+    return 1
+  fi
+  if ! op whoami &>/dev/null 2>&1; then
+    return 2
+  fi
+  return 0
+}
+
+op_ensure_item() {
+  if [[ "$OP_ITEM_ENSURED" == true ]]; then
+    return 0
+  fi
+  if ! op item get "$OP_ITEM" --vault "$OP_VAULT" &>/dev/null 2>&1; then
+    op item create \
+      --category securenote \
+      --title "$OP_ITEM" \
+      --vault "$OP_VAULT" &>/dev/null
+    printf "  ${GREEN}✓${RESET} Created 1Password item: ${BOLD}%s${RESET} in vault ${BOLD}%s${RESET}\n" "$OP_ITEM" "$OP_VAULT"
+  fi
+  OP_ITEM_ENSURED=true
+}
+
+op_save() {
+  local section="$1"
+  local field="$2"
+  local value="$3"
+
+  op_ensure_item
+
+  # base64-encode to safely handle multi-line values and special chars
+  local encoded
+  encoded="$(printf '%s' "$value" | base64 | tr -d '\n')"
+
+  op item edit "$OP_ITEM" --vault "$OP_VAULT" \
+    "${section}.${field}[concealed]=${encoded}" &>/dev/null
+}
+
+op_get() {
+  local section="$1"
+  local field="$2"
+  local encoded
+
+  encoded="$(op read "op://${OP_VAULT}/${OP_ITEM}/${section}/${field}" 2>/dev/null || true)"
+  if [[ -n "$encoded" ]]; then
+    printf '%s' "$encoded" | base64 -d 2>/dev/null
+    return 0
+  fi
+  return 1
+}
+
+# ─────────────────────────────────────────────────
+# File-based vault (fallback)
 # ─────────────────────────────────────────────────
 
 vault_save() {
@@ -157,15 +212,6 @@ vault_save() {
   if [[ -n "$value" ]]; then
     printf '%s\n' "$value" > "${dir}/${key}"
   fi
-}
-
-vault_append() {
-  local category="$1"
-  local key="$2"
-  local value="$3"
-  local dir="${VAULT_DIR}/${category}"
-  mkdir -p "$dir"
-  printf '%s\n' "$value" >> "${dir}/${key}"
 }
 
 vault_get() {
@@ -184,30 +230,141 @@ vault_clear_category() {
   rm -rf "${VAULT_DIR:?}/${category}"
 }
 
-print_vault_status() {
-  if [[ ! -d "$VAULT_DIR" ]]; then
-    printf "\n${BOLD}Vault:${RESET} ${DIM}empty (run a pull to populate)${RESET}\n"
-    return
+# ─────────────────────────────────────────────────
+# Secrets abstraction layer
+# ─────────────────────────────────────────────────
+
+secrets_init() {
+  if op_check; then
+    SECRETS_BACKEND="op"
+  else
+    SECRETS_BACKEND="file"
+  fi
+}
+
+secrets_save() {
+  local category="$1"
+  local key="$2"
+  local value="$3"
+
+  case "$SECRETS_BACKEND" in
+    op)
+      if ! op_save "$category" "$key" "$value"; then
+        # Fall back to file if op fails
+        vault_save "$category" "$key" "$value"
+      fi
+      ;;
+    file)
+      vault_save "$category" "$key" "$value"
+      ;;
+  esac
+}
+
+secrets_get() {
+  local category="$1"
+  local key="$2"
+
+  case "$SECRETS_BACKEND" in
+    op)
+      local result
+      result="$(op_get "$category" "$key" 2>/dev/null || true)"
+      if [[ -n "$result" ]]; then
+        echo "$result"
+        return 0
+      fi
+      # Fall back to file vault
+      vault_get "$category" "$key" 2>/dev/null
+      ;;
+    file)
+      vault_get "$category" "$key" 2>/dev/null
+      ;;
+  esac
+}
+
+# ─────────────────────────────────────────────────
+# .sync_config INI parser (op:// reference fallback)
+# ─────────────────────────────────────────────────
+
+SYNC_CONFIG="${REPO_DIR}/.sync_config"
+
+config_get() {
+  local section="$1"
+  local key="$2"
+
+  if [[ ! -f "$SYNC_CONFIG" ]]; then
+    return 1
   fi
 
-  printf "\n${BOLD}Vault:${RESET} ${DIM}%s${RESET}\n" "$VAULT_DIR"
-  local count=0
-  for category_dir in "${VAULT_DIR}"/*/; do
-    [[ -d "$category_dir" ]] || continue
-    local category
-    category="$(basename "$category_dir")"
-    for key_file in "${category_dir}"*; do
-      [[ -f "$key_file" ]] || continue
-      local key
-      key="$(basename "$key_file")"
-      local preview
-      preview="$(head -c 40 "$key_file" | tr '\n' ' ')"
-      printf "  ${DIM}%s/%s${RESET} = ${DIM}%.30s...${RESET}\n" "$category" "$key" "$preview"
-      ((count++))
-    done
-  done
-  if (( count == 0 )); then
-    printf "  ${DIM}(no values stored)${RESET}\n"
+  local in_section=false
+  local value=""
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    # Strip leading/trailing whitespace
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
+
+    # Skip empty lines and comments
+    [[ -z "$line" || "$line" == \#* ]] && continue
+
+    # Section header
+    if [[ "$line" =~ ^\[([a-zA-Z0-9_]+)\]$ ]]; then
+      if [[ "${BASH_REMATCH[1]}" == "$section" ]]; then
+        in_section=true
+      else
+        in_section=false
+      fi
+      continue
+    fi
+
+    # Key = value in our section
+    if [[ "$in_section" == true && "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*(.+)$ ]]; then
+      local found_key="${BASH_REMATCH[1]}"
+      local found_val="${BASH_REMATCH[2]}"
+
+      if [[ "$found_key" == "$key" ]]; then
+        # Resolve op:// references via 1Password CLI
+        if [[ "$found_val" == op://* ]]; then
+          if command -v op &>/dev/null; then
+            value="$(op read "$found_val" 2>/dev/null || true)"
+          fi
+        else
+          value="$found_val"
+        fi
+
+        if [[ -n "$value" ]]; then
+          printf '%s' "$value"
+          return 0
+        fi
+        return 1
+      fi
+    fi
+  done < "$SYNC_CONFIG"
+
+  return 1
+}
+
+print_secrets_status() {
+  printf "\n${BOLD}Secrets:${RESET} "
+  case "$SECRETS_BACKEND" in
+    op)
+      printf "${GREEN}1Password${RESET} ${DIM}(item: \"%s\" in vault \"%s\")${RESET}\n" "$OP_ITEM" "$OP_VAULT"
+      ;;
+    file)
+      printf "${YELLOW}local vault${RESET} ${DIM}(%s)${RESET}\n" "$VAULT_DIR"
+      if ! command -v op &>/dev/null; then
+        printf "  ${DIM}Install 1password-cli for encrypted cross-machine storage:${RESET}\n"
+        printf "  ${DIM}  brew install --cask 1password-cli${RESET}\n"
+      else
+        printf "  ${DIM}Sign in to 1Password CLI for encrypted storage:${RESET}\n"
+        printf "  ${DIM}  eval \$(op signin)${RESET}\n"
+      fi
+      ;;
+  esac
+
+  if [[ -f "$SYNC_CONFIG" ]]; then
+    printf "${BOLD}Config:${RESET}  ${GREEN}✓${RESET} ${DIM}.sync_config found (op:// fallback enabled)${RESET}\n"
+  else
+    printf "${BOLD}Config:${RESET}  ${DIM}.sync_config not found (no op:// fallback)${RESET}\n"
   fi
 }
 
@@ -215,7 +372,7 @@ print_vault_status() {
 # Token sanitization (pull: system → repo)
 #
 # Strips real tokens, replaces with placeholders,
-# and saves real values to the vault.
+# and saves real values to secrets backend.
 # ─────────────────────────────────────────────────
 
 sanitize_for_repo() {
@@ -223,49 +380,36 @@ sanitize_for_repo() {
   local src="$2"
 
   case "$repo_path" in
-    .zshrc)
-      sanitize_zshrc "$src"
-      ;;
-    .gitconfig)
-      sanitize_gitconfig "$src"
-      ;;
-    .codex/config.toml)
-      sanitize_codex "$src"
-      ;;
-    .ssh/config)
-      cat "$src"
-      ;;
-    *)
-      cat "$src"
-      ;;
+    .zshrc)       sanitize_zshrc "$src" ;;
+    .gitconfig)   sanitize_gitconfig "$src" ;;
+    .codex/config.toml) sanitize_codex "$src" ;;
+    .ssh/config)  cat "$src" ;;
+    *)            cat "$src" ;;
   esac
 }
 
 sanitize_zshrc() {
   local src="$1"
   local seen=":"
-
-  # Clear previous vault entries for zshrc
-  vault_clear_category "zshrc"
+  local tmpdir
+  tmpdir="$(mktemp -d)"
 
   while IFS= read -r line || [[ -n "$line" ]]; do
-    # Extract variable name from export lines (handles # prefix)
     local var=""
     if [[ "$line" =~ ^[#[:space:]]*(export[[:space:]]+([A-Z_]+)=) ]]; then
       var="${BASH_REMATCH[2]}"
     fi
 
     if [[ -n "$var" ]] && is_token_var "$var"; then
+      # Accumulate lines per token in temp files
+      printf '%s\n' "$line" >> "${tmpdir}/${var}"
+
+      # Emit placeholder once per variable
       if [[ ":$seen:" != *":$var:"* ]]; then
-        # First occurrence: save to vault, emit placeholder
-        vault_save "zshrc" "$var" "$line"
         seen="${seen}${var}:"
         local placeholder
         placeholder="$(echo "$var" | tr '[:upper:]' '[:lower:]')"
         echo "# export ${var}=your_${placeholder}_here"
-      else
-        # Subsequent occurrence: append to vault, skip output
-        vault_append "zshrc" "$var" "$line"
       fi
     elif [[ "$line" =~ ^#[[:space:]]*envs ]]; then
       echo "# envs - ADD YOUR OWN TOKENS HERE"
@@ -273,24 +417,36 @@ sanitize_zshrc() {
       echo "$line"
     fi
   done < "$src"
+
+  # Save all accumulated token values to secrets backend
+  for f in "${tmpdir}"/*; do
+    [[ -f "$f" ]] || continue
+    local key value
+    key="$(basename "$f")"
+    value="$(cat "$f")"
+    # Strip trailing newline from value for clean storage
+    value="${value%$'\n'}"
+    secrets_save "zshrc" "$key" "$value"
+  done
+
+  rm -rf "$tmpdir"
 }
 
 sanitize_gitconfig() {
   local src="$1"
 
-  # Save real values to vault
-  vault_clear_category "gitconfig"
+  # Save real values
   local val
   val="$(git config --file "$src" user.signingkey 2>/dev/null || true)"
-  [[ -n "$val" ]] && vault_save "gitconfig" "signingkey" "$val"
+  [[ -n "$val" ]] && secrets_save "gitconfig" "signingkey" "$val"
   val="$(git config --file "$src" user.name 2>/dev/null || true)"
-  [[ -n "$val" ]] && vault_save "gitconfig" "name" "$val"
+  [[ -n "$val" ]] && secrets_save "gitconfig" "name" "$val"
   val="$(git config --file "$src" user.email 2>/dev/null || true)"
-  [[ -n "$val" ]] && vault_save "gitconfig" "email" "$val"
+  [[ -n "$val" ]] && secrets_save "gitconfig" "email" "$val"
   val="$(git config --file "$src" core.excludesfile 2>/dev/null || true)"
-  [[ -n "$val" ]] && vault_save "gitconfig" "excludesfile" "$val"
+  [[ -n "$val" ]] && secrets_save "gitconfig" "excludesfile" "$val"
 
-  # Sanitize
+  # Sanitize output
   sed -E \
     -e 's/^([[:space:]]*signingkey = ).+$/\1signingkey/' \
     -e 's/^([[:space:]]*name = ).+$/\1Your Name/' \
@@ -302,15 +458,14 @@ sanitize_gitconfig() {
 sanitize_codex() {
   local src="$1"
 
-  # Save real API key to vault
-  vault_clear_category "codex"
+  # Save real API key
   local api_key
   api_key="$(grep -oE 'CONTEXT7_API_KEY[[:space:]]*=[[:space:]]*"[^"]*"' "$src" 2>/dev/null | grep -oE '"[^"]+"' | tail -1 | tr -d '"' || true)"
   if [[ -n "$api_key" && "$api_key" != "CONTEXT7_API_KEY" ]]; then
-    vault_save "codex" "CONTEXT7_API_KEY" "$api_key"
+    secrets_save "codex" "CONTEXT7_API_KEY" "$api_key"
   fi
 
-  # Sanitize
+  # Sanitize output
   sed -E \
     -e 's/(CONTEXT7_API_KEY[[:space:]]*=[[:space:]]*)"[^"]*"/\1"CONTEXT7_API_KEY"/' \
     "$src"
@@ -320,8 +475,8 @@ sanitize_codex() {
 # Token restoration (push: repo → system)
 #
 # Takes the repo file (placeholders) and fills in
-# real values from the vault (primary) or current
-# system file (fallback).
+# real values from secrets backend (primary) or
+# current system file (fallback).
 # ─────────────────────────────────────────────────
 
 restore_for_system() {
@@ -330,21 +485,11 @@ restore_for_system() {
   local sys_file="$3"
 
   case "$repo_path" in
-    .zshrc)
-      restore_zshrc "$repo_file" "$sys_file"
-      ;;
-    .gitconfig)
-      restore_gitconfig "$repo_file" "$sys_file"
-      ;;
-    .codex/config.toml)
-      restore_codex "$repo_file" "$sys_file"
-      ;;
-    .ssh/config)
-      cat "$repo_file"
-      ;;
-    *)
-      cat "$repo_file"
-      ;;
+    .zshrc)             restore_zshrc "$repo_file" "$sys_file" ;;
+    .gitconfig)         restore_gitconfig "$repo_file" "$sys_file" ;;
+    .codex/config.toml) restore_codex "$repo_file" "$sys_file" ;;
+    .ssh/config)        cat "$repo_file" ;;
+    *)                  cat "$repo_file" ;;
   esac
 }
 
@@ -353,17 +498,25 @@ restore_zshrc() {
   local sys_file="$2"
 
   while IFS= read -r line || [[ -n "$line" ]]; do
-    # Match placeholder lines: # export VARNAME=your_..._here
     if [[ "$line" =~ ^#[[:space:]]*export[[:space:]]+([A-Z_]+)=your_.*_here$ ]]; then
       local var="${BASH_REMATCH[1]}"
       local restored=""
 
-      # Try vault first
-      restored="$(vault_get zshrc "$var" 2>/dev/null || true)"
+      # Try secrets backend first
+      restored="$(secrets_get zshrc "$var" 2>/dev/null || true)"
 
       # Fall back to system file
       if [[ -z "$restored" && -f "$sys_file" ]]; then
         restored="$(grep -E "^[#[:space:]]*(export[[:space:]]+${var}=)" "$sys_file" 2>/dev/null || true)"
+      fi
+
+      # Fall back to .sync_config op:// references
+      if [[ -z "$restored" ]]; then
+        local config_val
+        config_val="$(config_get zshrc "$var" 2>/dev/null || true)"
+        if [[ -n "$config_val" ]]; then
+          restored="export ${var}=${config_val}"
+        fi
       fi
 
       if [[ -n "$restored" ]]; then
@@ -386,27 +539,39 @@ restore_gitconfig() {
   tmpfile="$(mktemp)"
   cp "$repo_file" "$tmpfile"
 
-  # Read from vault first, fall back to system
+  # Read from secrets backend, fall back to system file
   local signingkey name email excludesfile
 
-  signingkey="$(vault_get gitconfig signingkey 2>/dev/null || true)"
+  signingkey="$(secrets_get gitconfig signingkey 2>/dev/null || true)"
   if [[ -z "$signingkey" && -f "$sys_file" ]]; then
     signingkey="$(git config --file "$sys_file" user.signingkey 2>/dev/null || true)"
   fi
+  if [[ -z "$signingkey" ]]; then
+    signingkey="$(config_get gitconfig signingkey 2>/dev/null || true)"
+  fi
 
-  name="$(vault_get gitconfig name 2>/dev/null || true)"
+  name="$(secrets_get gitconfig name 2>/dev/null || true)"
   if [[ -z "$name" && -f "$sys_file" ]]; then
     name="$(git config --file "$sys_file" user.name 2>/dev/null || true)"
   fi
+  if [[ -z "$name" ]]; then
+    name="$(config_get gitconfig name 2>/dev/null || true)"
+  fi
 
-  email="$(vault_get gitconfig email 2>/dev/null || true)"
+  email="$(secrets_get gitconfig email 2>/dev/null || true)"
   if [[ -z "$email" && -f "$sys_file" ]]; then
     email="$(git config --file "$sys_file" user.email 2>/dev/null || true)"
   fi
+  if [[ -z "$email" ]]; then
+    email="$(config_get gitconfig email 2>/dev/null || true)"
+  fi
 
-  excludesfile="$(vault_get gitconfig excludesfile 2>/dev/null || true)"
+  excludesfile="$(secrets_get gitconfig excludesfile 2>/dev/null || true)"
   if [[ -z "$excludesfile" && -f "$sys_file" ]]; then
     excludesfile="$(git config --file "$sys_file" core.excludesfile 2>/dev/null || true)"
+  fi
+  if [[ -z "$excludesfile" ]]; then
+    excludesfile="$(config_get gitconfig excludesfile 2>/dev/null || true)"
   fi
 
   [[ -n "$signingkey" ]] && git config --file "$tmpfile" user.signingkey "$signingkey"
@@ -423,12 +588,16 @@ restore_codex() {
   local sys_file="$2"
 
   local api_key
-  api_key="$(vault_get codex CONTEXT7_API_KEY 2>/dev/null || true)"
+  api_key="$(secrets_get codex CONTEXT7_API_KEY 2>/dev/null || true)"
 
   if [[ -z "$api_key" || "$api_key" == "CONTEXT7_API_KEY" ]]; then
     if [[ -f "$sys_file" ]]; then
       api_key="$(grep -oE 'CONTEXT7_API_KEY[[:space:]]*=[[:space:]]*"[^"]*"' "$sys_file" 2>/dev/null | grep -oE '"[^"]+"' | tail -1 | tr -d '"' || true)"
     fi
+  fi
+
+  if [[ -z "$api_key" || "$api_key" == "CONTEXT7_API_KEY" ]]; then
+    api_key="$(config_get codex CONTEXT7_API_KEY 2>/dev/null || true)"
   fi
 
   if [[ -n "$api_key" && "$api_key" != "CONTEXT7_API_KEY" ]]; then
@@ -470,7 +639,6 @@ pull_to_repo() {
     sanitize_for_repo "$repo_path" "$sys_file" > "${repo_file}.sync_tmp"
     mv "${repo_file}.sync_tmp" "$repo_file"
 
-    # Safety net: verify no secrets leaked through
     if has_secrets "$repo_file"; then
       printf "  ${RED}⚠ WARNING: Secrets detected after sanitization in %s${RESET}\n" "$repo_path"
       printf "  ${RED}  Review the file before committing!${RESET}\n"
@@ -575,7 +743,7 @@ print_status_table() {
   fi
 
   check_agents_symlink
-  print_vault_status
+  print_secrets_status
 }
 
 # ─────────────────────────────────────────────────
@@ -643,7 +811,7 @@ interactive_sync() {
             continue
           fi
           pull_to_repo "$REPO_PATH" "$MODE" "$SYS_PATH"
-          printf "  ${GREEN}✓ Pulled to repo (tokens saved to vault)${RESET}\n"
+          printf "  ${GREEN}✓ Pulled to repo (tokens saved to %s)${RESET}\n" "$SECRETS_BACKEND"
           ((SYNCED++))
           break
           ;;
@@ -694,7 +862,7 @@ interactive_sync() {
 
 batch_push() {
   printf "${BOLD}Pushing all files: repo -> system${RESET}\n"
-  printf "${DIM}Sensitive files: placeholders filled from vault / current system${RESET}\n\n"
+  printf "${DIM}Sensitive files: placeholders filled from %s${RESET}\n\n" "$SECRETS_BACKEND"
 
   for mapping in "${MAPPINGS[@]}"; do
     parse_mapping "$mapping"
@@ -727,7 +895,7 @@ batch_push() {
 
 batch_pull() {
   printf "${BOLD}Pulling all files: system -> repo${RESET}\n"
-  printf "${DIM}Sensitive files: tokens saved to vault, replaced with placeholders${RESET}\n\n"
+  printf "${DIM}Sensitive files: tokens saved to %s, replaced with placeholders${RESET}\n\n" "$SECRETS_BACKEND"
 
   for mapping in "${MAPPINGS[@]}"; do
     parse_mapping "$mapping"
@@ -761,16 +929,27 @@ usage() {
   printf "${BOLD}sync${RESET} — bidirectional dotfile synchronization\n"
   printf "\n${BOLD}Usage:${RESET}\n"
   printf "  ./sync            Interactive mode (per-file prompts)\n"
-  printf "  ./sync --status   Show status table and vault contents\n"
+  printf "  ./sync --status   Show status table and secrets backend\n"
   printf "  ./sync --push     Batch push: repo -> system\n"
   printf "  ./sync --pull     Batch pull: system -> repo\n"
   printf "  ./sync --help     Show this help\n"
   printf "\n${BOLD}Token handling:${RESET}\n"
   printf "  Sensitive files are automatically sanitized in both directions.\n"
-  printf "  Real values are persisted in .sync_vault/ (gitignored) so they\n"
-  printf "  survive across syncs:\n"
-  printf "  • Pull: tokens saved to vault, then replaced with placeholders\n"
-  printf "  • Push: placeholders filled from vault (or current system file)\n"
+  printf "  Real values are persisted so they survive across syncs:\n"
+  printf "  • Pull: tokens saved to secrets backend, replaced with placeholders\n"
+  printf "  • Push: placeholders filled from secrets backend (or system file)\n"
+  printf "\n${BOLD}Token resolution (push, in priority order):${RESET}\n"
+  printf "  1. Secrets backend (1Password item or local file vault)\n"
+  printf "  2. Current system file values\n"
+  printf "  3. .sync_config op:// references (for fresh machine bootstrap)\n"
+  printf "\n${BOLD}Secrets backends:${RESET}\n"
+  printf "  1. 1Password CLI — encrypted, syncs across machines\n"
+  printf "     Requires: brew install --cask 1password-cli\n"
+  printf "     Override vault: DOTFILES_OP_VAULT=MyVault ./sync\n"
+  printf "  2. Local file vault — .sync_vault/ (gitignored fallback)\n"
+  printf "\n${BOLD}Fresh machine setup:${RESET}\n"
+  printf "  Edit .sync_config with your op:// references, then run ./sync --push\n"
+  printf "  Tokens will be resolved from your existing 1Password items.\n"
   printf "\n${BOLD}Tracked files:${RESET}\n"
   for mapping in "${MAPPINGS[@]}"; do
     parse_mapping "$mapping"
@@ -784,24 +963,16 @@ usage() {
 # ─────────────────────────────────────────────────
 
 main() {
+  secrets_init
+
   local mode="${1:-interactive}"
 
   case "$mode" in
-    --status)
-      print_status_table
-      ;;
-    --push)
-      batch_push
-      ;;
-    --pull)
-      batch_pull
-      ;;
-    --help|-h)
-      usage
-      ;;
-    interactive|"")
-      interactive_sync
-      ;;
+    --status)       print_status_table ;;
+    --push)         batch_push ;;
+    --pull)         batch_pull ;;
+    --help|-h)      usage ;;
+    interactive|"") interactive_sync ;;
     *)
       printf "${RED}Unknown option: %s${RESET}\n" "$mode"
       usage
