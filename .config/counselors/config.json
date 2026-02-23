@@ -14,10 +14,7 @@
         "level": "enforced"
       },
       "adapter": "claude",
-      "extraFlags": [
-        "--model",
-        "opus"
-      ]
+      "extraFlags": ["--model", "opus"]
     },
     "codex-5.3-high": {
       "binary": "/opt/homebrew/bin/codex",
@@ -26,12 +23,7 @@
       },
       "timeout": 900,
       "adapter": "codex",
-      "extraFlags": [
-        "-m",
-        "gpt-5.3-codex",
-        "-c",
-        "model_reasoning_effort=high"
-      ]
+      "extraFlags": ["-m", "gpt-5.3-codex", "-c", "model_reasoning_effort=high"]
     },
     "gemini-3-pro": {
       "binary": "/opt/homebrew/bin/gemini",
@@ -40,10 +32,7 @@
       },
       "timeout": 900,
       "adapter": "gemini",
-      "extraFlags": [
-        "-m",
-        "gemini-3-pro-preview"
-      ]
+      "extraFlags": ["-m", "gemini-3-pro"]
     }
   },
   "groups": {}

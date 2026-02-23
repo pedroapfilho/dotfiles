@@ -1,8 +1,16 @@
 agent-browser
 agent-tail
 better-auth-best-practices
+counselors
+defuddle
+dogfood
 email-and-password-best-practices
 find-skills
+humanizer
+json-canvas
+obsidian-bases
+obsidian-cli
+obsidian-markdown
 react-doctor
 react-router-data-mode
 react-router-declarative-mode

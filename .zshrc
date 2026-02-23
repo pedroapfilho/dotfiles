@@ -159,3 +159,4 @@ compinit
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+# export HF_TOKEN=your_hf_token_here

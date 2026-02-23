@@ -39,7 +39,7 @@ This document contains mandatory and recommended guidelines for software develop
 - NEVER: Add unnecessary comments about process or implementation details
 
 **Async Operations**
-- MUST: Use `Promise.allSettled` instead of `Promise.all`
+- MUST: Use `Promise.allSettled` instead of `Promise.all` for better error handling
 
 ### 2.2 Naming Conventions
 
@@ -190,7 +190,10 @@ if (isValid && isAllowed && isSecure) {
 
 - MUST: Always start with a written plan for any feature
 - MUST: Break down complex features into smaller, testable components
+- MUST: Make plans extremely concise — sacrifice grammar for the sake of concision
+- MUST: List unresolved questions at the end of every plan, if any
 - SHOULD: Draft a Markdown plan, critique it for gaps, then regenerate an improved version
+- NEVER: Write verbose plans with full sentences where fragments will do
 
 ### 6.2 Context Management
 
@@ -469,13 +472,11 @@ if (isValid && isAllowed && isSecure) {
 
 ## 10. Browser Automation
 
-Use `agent-browser` for web automation. Run `agent-browser --help` for all commands.
-
-Core workflow:
-1. `agent-browser open <url>` - Navigate to page
-2. `agent-browser snapshot -i` - Get interactive elements with refs (@e1, @e2)
-3. `agent-browser click @e1` / `fill @e2 "text"` - Interact using refs
-4. Re-snapshot after page changes
+- MUST: Use `agent-browser` for web automation. Run `agent-browser --help` for all commands.
+- MUST: `agent-browser open <url>` - Navigate to page
+- MUST: `agent-browser snapshot -i` - Get interactive elements with refs (@e1, @e2)
+- MUST: `agent-browser click @e1` / `fill @e2 "text"` - Interact using refs
+- MUST: Re-snapshot after page changes
 
 ---
 

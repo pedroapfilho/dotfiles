@@ -41,7 +41,7 @@ MAPPINGS=(
   ".zshrc:${HOME_DIR}/.zshrc:sensitive"
   ".gitconfig:${HOME_DIR}/.gitconfig:sensitive"
   ".claude/settings.json:${HOME_DIR}/.claude/settings.json:copy"
-  ".claude/mcp.json:${HOME_DIR}/.claude/mcp.json:copy"
+  ".claude/mcp.json:${HOME_DIR}/.claude/mcp.json:sensitive"
   ".claude/agents/backend-architect.md:${HOME_DIR}/.claude/agents/backend-architect.md:copy"
   ".claude/agents/code-reviewer.md:${HOME_DIR}/.claude/agents/code-reviewer.md:copy"
   ".claude/agents/context-manager.md:${HOME_DIR}/.claude/agents/context-manager.md:copy"
@@ -380,12 +380,50 @@ sanitize_for_repo() {
   local src="$2"
 
   case "$repo_path" in
-    .zshrc)       sanitize_zshrc "$src" ;;
-    .gitconfig)   sanitize_gitconfig "$src" ;;
+    .zshrc)             sanitize_zshrc "$src" ;;
+    .gitconfig)         sanitize_gitconfig "$src" ;;
     .codex/config.toml) sanitize_codex "$src" ;;
-    .ssh/config)  cat "$src" ;;
-    *)            cat "$src" ;;
+    .claude/mcp.json)   sanitize_mcp "$src" ;;
+    .ssh/config)        cat "$src" ;;
+    *)                  cat "$src" ;;
   esac
+}
+
+sanitize_mcp() {
+  local src="$1"
+
+  # Save real values for all token-like env vars, then replace with placeholder (key name)
+  local servers
+  servers="$(jq -r '.mcpServers | keys[]' "$src" 2>/dev/null || true)"
+
+  while IFS= read -r server; do
+    [[ -z "$server" ]] && continue
+    local env_keys
+    env_keys="$(jq -r --arg s "$server" '.mcpServers[$s].env // {} | keys[]' "$src" 2>/dev/null || true)"
+    while IFS= read -r key; do
+      [[ -z "$key" ]] && continue
+      if is_token_var "$key"; then
+        local val
+        val="$(jq -r --arg s "$server" --arg k "$key" '.mcpServers[$s].env[$k]' "$src" 2>/dev/null || true)"
+        if [[ -n "$val" && "$val" != "$key" ]]; then
+          secrets_save "mcp" "${server}__${key}" "$val"
+        fi
+      fi
+    done <<< "$env_keys"
+  done <<< "$servers"
+
+  # Emit sanitized JSON: replace token values with their key name as placeholder
+  jq 'walk(
+    if type == "object" and has("env") then
+      .env |= with_entries(
+        if (.key | test("_TOKEN$|_SECRET$|_API_KEY$|_APIKEY$|_KEY$"))
+        then .value = .key
+        else .
+        end
+      )
+    else .
+    end
+  )' "$src"
 }
 
 sanitize_zshrc() {
@@ -488,9 +526,55 @@ restore_for_system() {
     .zshrc)             restore_zshrc "$repo_file" "$sys_file" ;;
     .gitconfig)         restore_gitconfig "$repo_file" "$sys_file" ;;
     .codex/config.toml) restore_codex "$repo_file" "$sys_file" ;;
+    .claude/mcp.json)   restore_mcp "$repo_file" "$sys_file" ;;
     .ssh/config)        cat "$repo_file" ;;
     *)                  cat "$repo_file" ;;
   esac
+}
+
+restore_mcp() {
+  local repo_file="$1"
+  local sys_file="$2"
+  local tmpfile
+  tmpfile="$(mktemp)"
+  cp "$repo_file" "$tmpfile"
+
+  local servers
+  servers="$(jq -r '.mcpServers | keys[]' "$repo_file" 2>/dev/null || true)"
+
+  while IFS= read -r server; do
+    [[ -z "$server" ]] && continue
+    local env_keys
+    env_keys="$(jq -r --arg s "$server" '.mcpServers[$s].env // {} | keys[]' "$repo_file" 2>/dev/null || true)"
+    while IFS= read -r key; do
+      [[ -z "$key" ]] && continue
+      if ! is_token_var "$key"; then continue; fi
+
+      # Only restore if current value is the placeholder (equals key name)
+      local current_val
+      current_val="$(jq -r --arg s "$server" --arg k "$key" '.mcpServers[$s].env[$k]' "$tmpfile" 2>/dev/null || true)"
+      [[ "$current_val" != "$key" ]] && continue
+
+      local real_val=""
+      real_val="$(secrets_get mcp "${server}__${key}" 2>/dev/null || true)"
+
+      # Fall back to system file
+      if [[ -z "$real_val" && -f "$sys_file" ]]; then
+        local sys_val
+        sys_val="$(jq -r --arg s "$server" --arg k "$key" '.mcpServers[$s].env[$k] // empty' "$sys_file" 2>/dev/null || true)"
+        [[ -n "$sys_val" && "$sys_val" != "$key" ]] && real_val="$sys_val"
+      fi
+
+      if [[ -n "$real_val" ]]; then
+        jq --arg s "$server" --arg k "$key" --arg v "$real_val" \
+          '.mcpServers[$s].env[$k] = $v' "$tmpfile" > "${tmpfile}.new"
+        mv "${tmpfile}.new" "$tmpfile"
+      fi
+    done <<< "$env_keys"
+  done <<< "$servers"
+
+  cat "$tmpfile"
+  rm -f "$tmpfile"
 }
 
 restore_zshrc() {

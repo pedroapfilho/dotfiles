@@ -8,8 +8,9 @@ Personal dotfiles configuration for macOS development environment.
 - **Node.js**: fnm (Fast Node Manager) with multiple Node versions
 - **Package Managers**: Homebrew, pnpm, bun
 - **Git**: Configuration with GPG signing via 1Password
-- **Claude Code**: Settings, agents, hooks, and MCP configuration
+- **Claude Code**: Settings, agents, hooks, skills, and MCP configuration
 - **Codex**: Configuration with MCP servers
+- **Counselors**: Multi-agent orchestration (Claude, Codex, Gemini in parallel)
 - **Zed**: Editor settings and keybindings
 - **SSH**: Host configurations for home lab
 - **Development Tools**: Various CLI tools and utilities
@@ -65,24 +66,41 @@ The `sync` script manages bidirectional dotfile synchronization between this rep
    ln -s ~/.oh-my-zsh/custom/themes/spaceship-prompt/spaceship.zsh-theme ~/.oh-my-zsh/custom/themes/spaceship.zsh-theme
    ```
 
-4. **Push dotfiles to system**:
+4. **Install Claude Code skills**:
+   ```bash
+   # Skills are tracked in skills.txt — install any missing ones
+   ./sync --push
+   ```
+
+5. **Initialize Counselors**:
+   ```bash
+   counselors init --auto
+   ```
+
+6. **Push dotfiles to system**:
    ```bash
    ./sync --push
    ```
 
-5. **Add your personal tokens to `~/.zshrc`**
+7. **Add your personal tokens to `~/.zshrc`**
 
-6. **Configure 1Password SSH agent** for Git commit signing
+8. **Configure 1Password SSH agent** for Git commit signing
 
-7. **Restart your terminal** or run `source ~/.zshrc`
+9. **Restart your terminal** or run `source ~/.zshrc`
 
 ## Included Tools
 
 ### Homebrew Packages
 
-**Formulae**: `agent-browser`, `arduino-cli`, `certbot`, `cloudflared`, `codex`, `deno`, `ffmpeg`, `fnm`, `gemini-cli`, `gh`, `git-lfs`, `git-xet`, `go`, `just`, `neovim`, `platformio`, `ripgrep`, `sshs`, `stripe`, `uv`, `watchexec`, `yt-dlp`, `zoxide`
+**Formulae**: `agent-browser`, `arduino-cli`, `certbot`, `cloudflared`, `codex`, `counselors`, `deno`, `ffmpeg`, `fnm`, `gemini-cli`, `gh`, `git-lfs`, `git-xet`, `go`, `just`, `neovim`, `platformio`, `ripgrep`, `sshs`, `stripe`, `uv`, `watchexec`, `yt-dlp`, `zoxide`
 
 **Casks**: `1password-cli`, `arduino-ide`, `balenaetcher`, `claude-code`, `ghostty`, `gitkraken-cli`, `monitorcontrol`, `proxyman`, `raspberry-pi-imager`, `tor-browser`, `zed`
+
+### Claude Code Skills
+
+Skills are tracked in `skills.txt` and checked during sync. Install missing ones with `claude install-skill <name>`.
+
+`agent-browser`, `agent-tail`, `better-auth-best-practices`, `email-and-password-best-practices`, `find-skills`, `react-doctor`, `react-router-data-mode`, `react-router-declarative-mode`, `react-router-framework-mode`, `remotion-best-practices`, `ripgrep`, `seo-audit`, `typefully`, `vercel-react-best-practices`, `web-design-guidelines`
 
 ### Zsh Plugins
 
@@ -114,6 +132,8 @@ dotfiles/
 ├── .codex/
 │   └── config.toml                 # Codex configuration
 ├── .config/
+│   ├── counselors/
+│   │   └── config.json             # Counselors multi-agent config
 │   ├── spaceship.zsh               # Spaceship prompt config
 │   ├── git/ignore                  # Global git ignore (XDG)
 │   └── zed/
@@ -123,6 +143,7 @@ dotfiles/
 │   └── config                      # SSH host configurations
 ├── AGENTS.md                       # Claude instructions (-> ~/AGENTS.md)
 ├── Brewfile                        # Homebrew packages
+├── skills.txt                      # Claude Code installed skills
 ├── sync                            # Dotfile sync script
 └── README.md                       # This file
 ```
