@@ -1,8 +1,11 @@
 agent-browser
 agent-tail
 better-auth-best-practices
+counselors
+dogfood
 email-and-password-best-practices
 find-skills
+humanizer
 react-doctor
 react-router-data-mode
 react-router-declarative-mode

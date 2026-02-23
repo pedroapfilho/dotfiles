@@ -2,7 +2,10 @@
   "env": {
     "DISABLE_ZOXIDE": "1"
   },
-  "includeCoAuthoredBy": false,
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "hooks": {},
   "statusLine": {
     "type": "command",
