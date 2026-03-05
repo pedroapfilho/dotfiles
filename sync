@@ -49,6 +49,7 @@ MAPPINGS=(
   ".claude/agents/react-component-architect.md:${HOME_DIR}/.claude/agents/react-component-architect.md:copy"
   ".claude/agents/react-nextjs-expert.md:${HOME_DIR}/.claude/agents/react-nextjs-expert.md:copy"
   ".claude/commands/aw.md:${HOME_DIR}/.claude/commands/aw.md:copy"
+  ".claude/commands/address-pr-comments.md:${HOME_DIR}/.claude/commands/address-pr-comments.md:copy"
   ".claude/hooks/pre-tool-use.js:${HOME_DIR}/.claude/hooks/pre-tool-use.js:copy"
   ".codex/config.toml:${HOME_DIR}/.codex/config.toml:sensitive"
   ".config/zed/settings.json:${HOME_DIR}/.config/zed/settings.json:copy"
