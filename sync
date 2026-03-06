@@ -51,6 +51,7 @@ MAPPINGS=(
   ".claude/commands/aw.md:${HOME_DIR}/.claude/commands/aw.md:copy"
   ".claude/commands/address-pr-comments.md:${HOME_DIR}/.claude/commands/address-pr-comments.md:copy"
   ".claude/hooks/pre-tool-use.js:${HOME_DIR}/.claude/hooks/pre-tool-use.js:copy"
+  ".claude/hooks/humanizer-reminder.js:${HOME_DIR}/.claude/hooks/humanizer-reminder.js:copy"
   ".codex/config.toml:${HOME_DIR}/.codex/config.toml:sensitive"
   ".config/zed/settings.json:${HOME_DIR}/.config/zed/settings.json:copy"
   ".config/zed/keymap.json:${HOME_DIR}/.config/zed/keymap.json:copy"

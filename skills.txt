@@ -8,6 +8,7 @@ email-and-password-best-practices
 find-skills
 humanizer
 json-canvas
+nestjs-best-practices
 obsidian-bases
 obsidian-cli
 obsidian-markdown
@@ -18,6 +19,7 @@ react-router-framework-mode
 remotion-best-practices
 ripgrep
 seo-audit
+shadcn
 typefully
 vercel-react-best-practices
 web-design-guidelines

@@ -27,6 +27,7 @@
 - extract complex conditionals into named variables; early returns over nested ifs
 - composition > inheritance; deep modules (simple interface, rich impl) > shallow
 - minimal language features; self-descriptive values; duplication is fine, bad abstractions aren't
+- max 400 lines per file; if exceeded, split into focused submodules
 
 ## Security & Production
 - sanitize inputs (client + server); auth/authz; HTTPS + CORS; escape XSS
