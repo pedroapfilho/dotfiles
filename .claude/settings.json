@@ -16,6 +16,24 @@
             "command": "node $HOME/.claude/hooks/humanizer-reminder.js"
           }
         ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node $HOME/.claude/hooks/humanizer-reminder.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node $HOME/.claude/hooks/humanizer-reminder.js"
+          }
+        ]
       }
     ]
   },

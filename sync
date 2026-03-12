@@ -58,6 +58,7 @@ MAPPINGS=(
   ".config/spaceship.zsh:${HOME_DIR}/.config/spaceship.zsh:copy"
   ".config/git/ignore:${HOME_DIR}/.config/git/ignore:copy"
   ".config/counselors/config.json:${HOME_DIR}/.config/counselors/config.json:copy"
+  ".config/opencode/opencode.json:${HOME_DIR}/.config/opencode/opencode.json:sensitive"
   ".ssh/config:${HOME_DIR}/.ssh/config:sensitive"
 )
 
@@ -377,17 +378,54 @@ print_secrets_status() {
 # and saves real values to secrets backend.
 # ─────────────────────────────────────────────────
 
+sanitize_opencode() {
+  local src="$1"
+
+  # Save real API key values, then replace with placeholder (key name)
+  local mcp_keys
+  mcp_keys="$(jq -r '.mcp | keys[]' "$src" 2>/dev/null || true)"
+
+  while IFS= read -r server; do
+    [[ -z "$server" ]] && continue
+    local env_keys
+    env_keys="$(jq -r --arg s "$server" '.mcp[$s].environment // {} | keys[]' "$src" 2>/dev/null || true)"
+    while IFS= read -r key; do
+      [[ -z "$key" ]] && continue
+      if is_token_var "$key"; then
+        local val
+        val="$(jq -r --arg s "$server" --arg k "$key" '.mcp[$s].environment[$k]' "$src" 2>/dev/null || true)"
+        if [[ -n "$val" && "$val" != "$key" ]]; then
+          secrets_save "opencode" "${server}__${key}" "$val"
+        fi
+      fi
+    done <<< "$env_keys"
+  done <<< "$mcp_keys"
+
+  jq 'if .mcp then .mcp |= with_entries(
+    if .value.environment then
+      .value.environment |= with_entries(
+        if (.key | test("_TOKEN$|_SECRET$|_API_KEY$|_APIKEY$|_KEY$"))
+        then .value = .key
+        else .
+        end
+      )
+    else .
+    end
+  ) else . end' "$src"
+}
+
 sanitize_for_repo() {
   local repo_path="$1"
   local src="$2"
 
   case "$repo_path" in
-    .zshrc)             sanitize_zshrc "$src" ;;
-    .gitconfig)         sanitize_gitconfig "$src" ;;
-    .codex/config.toml) sanitize_codex "$src" ;;
-    .claude/mcp.json)   sanitize_mcp "$src" ;;
-    .ssh/config)        cat "$src" ;;
-    *)                  cat "$src" ;;
+    .zshrc)                              sanitize_zshrc "$src" ;;
+    .gitconfig)                          sanitize_gitconfig "$src" ;;
+    .codex/config.toml)                  sanitize_codex "$src" ;;
+    .claude/mcp.json)                    sanitize_mcp "$src" ;;
+    .config/opencode/opencode.json)      sanitize_opencode "$src" ;;
+    .ssh/config)                         cat "$src" ;;
+    *)                                   cat "$src" ;;
   esac
 }
 
@@ -519,18 +557,62 @@ sanitize_codex() {
 # current system file (fallback).
 # ─────────────────────────────────────────────────
 
+restore_opencode() {
+  local repo_file="$1"
+  local sys_file="$2"
+  local tmpfile
+  tmpfile="$(mktemp)"
+  cp "$repo_file" "$tmpfile"
+
+  local mcp_keys
+  mcp_keys="$(jq -r '.mcp | keys[]' "$repo_file" 2>/dev/null || true)"
+
+  while IFS= read -r server; do
+    [[ -z "$server" ]] && continue
+    local env_keys
+    env_keys="$(jq -r --arg s "$server" '.mcp[$s].environment // {} | keys[]' "$repo_file" 2>/dev/null || true)"
+    while IFS= read -r key; do
+      [[ -z "$key" ]] && continue
+      if ! is_token_var "$key"; then continue; fi
+
+      local current_val
+      current_val="$(jq -r --arg s "$server" --arg k "$key" '.mcp[$s].environment[$k]' "$tmpfile" 2>/dev/null || true)"
+      [[ "$current_val" != "$key" ]] && continue
+
+      local real_val=""
+      real_val="$(secrets_get opencode "${server}__${key}" 2>/dev/null || true)"
+
+      if [[ -z "$real_val" && -f "$sys_file" ]]; then
+        local sys_val
+        sys_val="$(jq -r --arg s "$server" --arg k "$key" '.mcp[$s].environment[$k] // empty' "$sys_file" 2>/dev/null || true)"
+        [[ -n "$sys_val" && "$sys_val" != "$key" ]] && real_val="$sys_val"
+      fi
+
+      if [[ -n "$real_val" ]]; then
+        jq --arg s "$server" --arg k "$key" --arg v "$real_val" \
+          '.mcp[$s].environment[$k] = $v' "$tmpfile" > "${tmpfile}.new"
+        mv "${tmpfile}.new" "$tmpfile"
+      fi
+    done <<< "$env_keys"
+  done <<< "$mcp_keys"
+
+  cat "$tmpfile"
+  rm -f "$tmpfile"
+}
+
 restore_for_system() {
   local repo_path="$1"
   local repo_file="$2"
   local sys_file="$3"
 
   case "$repo_path" in
-    .zshrc)             restore_zshrc "$repo_file" "$sys_file" ;;
-    .gitconfig)         restore_gitconfig "$repo_file" "$sys_file" ;;
-    .codex/config.toml) restore_codex "$repo_file" "$sys_file" ;;
-    .claude/mcp.json)   restore_mcp "$repo_file" "$sys_file" ;;
-    .ssh/config)        cat "$repo_file" ;;
-    *)                  cat "$repo_file" ;;
+    .zshrc)                              restore_zshrc "$repo_file" "$sys_file" ;;
+    .gitconfig)                          restore_gitconfig "$repo_file" "$sys_file" ;;
+    .codex/config.toml)                  restore_codex "$repo_file" "$sys_file" ;;
+    .claude/mcp.json)                    restore_mcp "$repo_file" "$sys_file" ;;
+    .config/opencode/opencode.json)      restore_opencode "$repo_file" "$sys_file" ;;
+    .ssh/config)                         cat "$repo_file" ;;
+    *)                                   cat "$repo_file" ;;
   esac
 }
 
