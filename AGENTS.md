@@ -94,5 +94,18 @@
 - placeholders: `YOUR_API_TOKEN_HERE` (strings), `0123456789` (numbers)
 - numerals for counts; non-breaking space between number + unit
 
+## Writing
+- no throat-clearing openers: "Here's the thing", "It turns out", "The truth is", "I'll be honest"
+- no emphasis crutches: "Full stop.", "Let that sink in.", "Make no mistake", "This matters because"
+- no filler adverbs: "At its core", "It's worth noting", "Interestingly,", "Importantly,", "Crucially,"
+- no business jargon: navigate→handle, unpack→explain, deep dive→analysis, game-changer→significant, moving forward→next
+- no binary contrast formulas: "Not X. But Y.", "The answer isn't X. It's Y.", "It feels like X. It's actually Y."
+- no dramatic fragments: "X. That's it. That's the thing.", stacked short punchy sentences
+- no rhetorical setups: "What if [reframe]?", "Think about it:", "Here's what I mean:"
+- no AI intensifiers: deeply, truly, fundamentally, inherently, simply, literally, inevitably
+- no em-dashes before reveals; use periods or commas
+- vary sentence length; two-item lists over three; don't end every paragraph with a punchy one-liner
+- state facts directly; trust the reader; skip softening and hand-holding
+
 ## Browser Automation
 - `agent-browser open <url>` → `snapshot -i` → `click @e1`/`fill @e2 "text"` → re-snapshot

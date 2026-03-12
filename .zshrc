@@ -121,6 +121,7 @@ PATH="/usr/local/sbin:$PATH"
 # envs - ADD YOUR OWN TOKENS HERE
 # export GITHUB_TOKEN=your_github_token_here
 # export NPM_TOKEN=your_npm_token_here
+export AGENT_BROWSER_AUTO_CONNECT=1
 
 # fnm
 eval "$(fnm env --use-on-cd --shell zsh)"
@@ -160,3 +161,9 @@ compinit
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 # export HF_TOKEN=your_hf_token_here
+
+# opencode
+export PATH=/Users/pedroapfilho/.opencode/bin:$PATH
+
+# lightpanda
+export PATH="/Users/pedroapfilho/.local/bin:$PATH"
