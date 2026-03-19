@@ -31,6 +31,12 @@ onboard
 optimize
 overdrive
 polish
+prisma-cli
+prisma-client-api
+prisma-database-setup
+prisma-driver-adapter-implementation
+prisma-postgres
+prisma-upgrade-v7
 quieter
 react-doctor
 react-router-data-mode
@@ -42,6 +48,7 @@ ripgrep
 seo-audit
 shadcn
 stop-slop
+syncing-monorepos
 teach-impeccable
 typefully
 typeset
