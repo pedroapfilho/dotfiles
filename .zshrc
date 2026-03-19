@@ -167,3 +167,6 @@ export PATH=/Users/pedroapfilho/.opencode/bin:$PATH
 
 # lightpanda
 export PATH="/Users/pedroapfilho/.local/bin:$PATH"
+
+# Vite+ bin (https://viteplus.dev)
+. "$HOME/.vite-plus/env"
