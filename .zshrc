@@ -170,3 +170,6 @@ export PATH="/Users/pedroapfilho/.local/bin:$PATH"
 
 # Vite+ bin (https://viteplus.dev)
 . "$HOME/.vite-plus/env"
+
+# replicate
+# export REPLICATE_API_TOKEN=your_replicate_api_token_here
