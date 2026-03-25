@@ -101,7 +101,7 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # aliases
-alias up="softwareupdate -l && brew update && brew upgrade && brew cleanup && pnpm -g upgrade"
+alias up="softwareupdate -l && brew update && brew upgrade && brew cleanup && pnpm -g upgrade && npx skills update"
 alias yolo="git add . && git commit --amend --no-edit && git push --force-with-lease"
 alias python="python3"
 alias pip="pip3"
@@ -119,9 +119,7 @@ PATH="/usr/local/bin:$PATH:./node_modules/.bin";
 PATH="/usr/local/sbin:$PATH"
 
 # envs - ADD YOUR OWN TOKENS HERE
-# export GITHUB_TOKEN=your_github_token_here
 # export NPM_TOKEN=your_npm_token_here
-export AGENT_BROWSER_AUTO_CONNECT=1
 
 # fnm
 eval "$(fnm env --use-on-cd --shell zsh)"
@@ -170,3 +168,6 @@ export PATH="/Users/pedroapfilho/.local/bin:$PATH"
 
 # Vite+ bin (https://viteplus.dev)
 . "$HOME/.vite-plus/env"
+
+# replicate
+# export REPLICATE_API_TOKEN=your_replicate_api_token_here

@@ -16,6 +16,7 @@ distill
 dogfood
 email-and-password-best-practices
 emil-design-eng
+expect
 extract
 find-skills
 frontend-design
@@ -49,6 +50,7 @@ seo-audit
 shadcn
 stop-slop
 syncing-monorepos
+tanstack-form
 teach-impeccable
 typefully
 typeset

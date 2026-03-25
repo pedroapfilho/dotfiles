@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(update-config)",
+      "Bash(node /Users/pedroapfilho/.claude/hooks/pre-push-checks.js)",
+      "Bash(echo \"exit: $?\")"
+    ]
+  }
+}
