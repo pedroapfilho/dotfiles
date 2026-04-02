@@ -1,17 +1,23 @@
 #!/usr/bin/env bash
 # Shared repo definitions and helper functions for verification scripts
+# Compatible with bash 3.2+ (macOS default)
 
 REPOS_DIR="${HOME}/dev"
 
-declare -A REPO_PATHS=(
-  [acme]="${REPOS_DIR}/acme-monorepo"
-  [localcine]="${REPOS_DIR}/localcine-monorepo"
-  [collabtime]="${REPOS_DIR}/collabtime-monorepo"
-  [frow]="${REPOS_DIR}/frow-monorepo"
-)
-
 REPO_NAMES=("acme" "localcine" "collabtime" "frow")
 SOURCE_OF_TRUTH="acme"
+
+# Lookup repo path by name (bash 3.2 compatible — no associative arrays)
+repo_path() {
+  local name="$1"
+  case "$name" in
+    acme)      echo "${REPOS_DIR}/acme-monorepo" ;;
+    localcine) echo "${REPOS_DIR}/localcine-monorepo" ;;
+    collabtime) echo "${REPOS_DIR}/collabtime-monorepo" ;;
+    frow)      echo "${REPOS_DIR}/frow-monorepo" ;;
+    *) return 1 ;;
+  esac
+}
 
 # Colors
 RED='\033[0;31m'
@@ -28,7 +34,7 @@ SKIP_COUNT=0
 pass() {
   local repo="$1" check="$2"
   printf "${GREEN}PASS${RESET} %s: %s\n" "$repo" "$check"
-  ((PASS_COUNT++))
+  PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
@@ -36,13 +42,13 @@ fail() {
   printf "${RED}FAIL${RESET} %s: %s" "$repo" "$check"
   [[ -n "$detail" ]] && printf " — %s" "$detail"
   printf "\n"
-  ((FAIL_COUNT++))
+  FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 skip() {
   local repo="$1" check="$2" reason="$3"
   printf "${YELLOW}SKIP${RESET} %s: %s (%s)\n" "$repo" "$check" "$reason"
-  ((SKIP_COUNT++))
+  SKIP_COUNT=$((SKIP_COUNT + 1))
 }
 
 summary() {
@@ -57,7 +63,7 @@ parse_repo_flag() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --repo)
-        if [[ -n "${REPO_PATHS[$2]+x}" ]]; then
+        if repo_path "$2" >/dev/null 2>&1; then
           SCOPED_REPOS=("$2")
         else
           printf "${RED}Unknown repo: %s${RESET}\n" "$2"
