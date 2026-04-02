@@ -30,6 +30,7 @@ obsidian-cli
 obsidian-markdown
 onboard
 optimize
+orchestrator
 overdrive
 polish
 prisma-cli
@@ -45,14 +46,15 @@ react-router-declarative-mode
 react-router-framework-mode
 react-useeffect
 remotion-best-practices
+requesting-code-review
 ripgrep
 seo-audit
 shadcn
 stop-slop
-syncing-monorepos
 tanstack-form
 teach-impeccable
 typefully
 typeset
 vercel-react-best-practices
+vercel-react-view-transitions
 web-design-guidelines
