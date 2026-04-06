@@ -31,14 +31,29 @@ Standards enforced across all maintained monorepos. Acme is the template — upd
 
 ### Portless
 
+Proxy runs on port 443 (HTTPS, clean URLs). Start with `portless proxy start` (requires sudo).
+
 All dev scripts use `portless run --name <project>.<app>`.
 
 | Pattern | URL |
 |---------|-----|
-| Main worktree | `http://<project>.<app>.localhost:1355` |
-| Git worktree on branch `fix-ui` | `http://fix-ui.<project>.<app>.localhost:1355` |
+| Main worktree | `https://<project>.<app>.localhost` |
+| Git worktree on branch `fix-ui` | `https://fix-ui.<project>.<app>.localhost` |
 
 Every Next.js app must have `allowedDevOrigins: ["<project>.<app>.localhost"]` in `next.config.ts`.
+
+### Docker
+
+Every repo has a `docker-compose.yml` with `name: <project>` (no `-monorepo` suffix).
+
+| Repo | Services |
+|------|----------|
+| acme | Postgres 18 |
+| localcine | MySQL 8 + MeiliSearch |
+| collabtime | Postgres 18 + Redis + Redis REST |
+| frow | Postgres + Redis |
+
+Start with `docker compose up -d`. Stop with `docker compose stop`. Only run one project at a time (port conflicts on 5432/6379).
 
 ### Dev-Only Tools
 
