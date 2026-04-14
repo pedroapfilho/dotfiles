@@ -3,8 +3,5 @@
     "lint": ["uses-clerk-not-better-auth"],
     "e2e": ["dev-server-in-ci", "external-db", "packages-only-build", "chromium-only"],
     "db": ["mysql-not-postgres"]
-  },
-  "collabtime": {
-    "e2e": ["chromium-only-ci"]
   }
 }
