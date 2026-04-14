@@ -9,7 +9,7 @@ parse_repo_flag "$@"
 
 printf "${BOLD}Checking package architecture...${RESET}\n\n"
 
-REQUIRED_PACKAGES=("ui" "db" "config-typescript" "config-tailwind" "config-vitest")
+REQUIRED_PACKAGES=("ui" "db" "config-typescript" "config-vitest")
 
 for repo in "${SCOPED_REPOS[@]}"; do
   REPO_PATH="$(repo_path "$repo")"
@@ -54,6 +54,15 @@ for repo in "${SCOPED_REPOS[@]}"; do
     else
       fail "$repo" "packages/config-eslint" "vestigial package — should be removed (oxlint is the standard)"
     fi
+  fi
+
+  # config-tailwind should NOT exist — its role moved into @repo/ui under the
+  # shadcn workshop pattern (theme vars + @source live in packages/ui/src/styles/globals.css,
+  # postcss config re-exported from @repo/ui/postcss.config).
+  if [[ -d "${REPO_PATH}/packages/config-tailwind" ]]; then
+    fail "$repo" "packages/config-tailwind" "vestigial package — merged into @repo/ui"
+  else
+    pass "$repo" "packages/config-tailwind removed"
   fi
 done
 

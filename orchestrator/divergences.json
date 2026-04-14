@@ -1,12 +1,8 @@
 {
   "localcine": {
     "lint": ["uses-clerk-not-better-auth"],
-    "packages": ["has-config-eslint-vestigial"],
     "e2e": ["dev-server-in-ci", "external-db", "packages-only-build", "chromium-only"],
     "db": ["mysql-not-postgres"]
-  },
-  "frow": {
-    "lint": ["sort-rules-off", "array-type-off", "no-unescaped-entities-off"]
   },
   "collabtime": {
     "e2e": ["chromium-only-ci"]
