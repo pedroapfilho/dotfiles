@@ -41,6 +41,18 @@
 - clarify requirements before building
 - don't ignore TS errors, lint errors, or skip planning
 
+## Discipline
+- on correction: stop, re-read user's message, quote back the ask, confirm before proceeding
+- read full file before editing; plan all changes; make ONE complete edit
+- if edited same file 3+ times, stop and re-read user's requirements
+- every few turns, re-read original request to check for drift
+- re-read user's last message before responding; follow through on every instruction
+- verify output addresses the ask before presenting
+- after 2 consecutive tool failures, stop; change approach; explain what failed
+- complete full task before stopping; if user asked for N things, do all N
+- when stuck, summarize attempts and ask for guidance instead of retrying
+- act sooner: read ≤3–5 files before making a change; basic understanding → change → iterate
+
 ## Debugging
 - find modified files; root cause; gather logs/traces; form hypotheses, test them
 
