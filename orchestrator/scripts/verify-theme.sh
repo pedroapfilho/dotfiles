@@ -12,11 +12,11 @@ parse_repo_flag "$@"
 
 printf "${BOLD}Checking semantic theme tokens...${RESET}\n\n"
 
-# Raw Tailwind palettes that should not appear as className values in source.
-# Black/white overlays (bg-black/50, text-white) are allowed by convention — those
-# are often intentional overlays over images/video. Status colors outside the theme
-# (text-green-600 for success badges) are also allowed.
-BANNED_PALETTES='(neutral|gray|zinc|slate|stone|amber)'
+# All Tailwind named palettes should be routed through semantic theme tokens
+# (bg-primary, bg-destructive, bg-warning, bg-success, bg-info, bg-muted, etc).
+# Black/white are not palettes (no -500, -600 variants) and their overlay idiom
+# (bg-black/50 over images) stays allowed.
+BANNED_PALETTES='(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)'
 BANNED_UTILITIES='(bg|text|border|ring|outline|fill|stroke|placeholder|decoration|divide|accent|caret|shadow|from|to|via)'
 
 for repo in "${SCOPED_REPOS[@]}"; do
