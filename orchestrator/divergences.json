@@ -1,7 +1,7 @@
 {
   "localcine": {
     "lint": ["uses-clerk-not-better-auth"],
-    "e2e": ["dev-server-in-ci", "external-db", "dashboard-chromium-only"],
+    "e2e": ["dev-server-in-ci", "external-db", "chromium-only"],
     "db": ["mysql-not-postgres"]
   }
 }
