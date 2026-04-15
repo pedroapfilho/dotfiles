@@ -26,7 +26,7 @@ run_verifier() {
   fi
 }
 
-for verifier in versions ci lint packages dev e2e ui naming theme primitives shared-ui; do
+for verifier in versions ci lint packages dev e2e ui naming theme primitives shared-ui tsconfig; do
   run_verifier "$verifier" "$@"
 done
 
