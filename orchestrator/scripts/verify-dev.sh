@@ -40,8 +40,19 @@ for repo in "${SCOPED_REPOS[@]}"; do
     done
     [[ -z "$next_config" ]] && continue
 
-    if grep -q "allowedDevOrigins" "$next_config"; then
-      pass "$repo" "apps/${app_name} allowedDevOrigins set"
+    expected_main="${repo}.${app_name}.localhost"
+    expected_wildcard="*.${repo}.${app_name}.localhost"
+    has_main=false
+    has_wildcard=false
+    grep -qF "\"${expected_main}\"" "$next_config" && has_main=true
+    grep -qF "\"${expected_wildcard}\"" "$next_config" && has_wildcard=true
+
+    if [[ "$has_main" == "true" && "$has_wildcard" == "true" ]]; then
+      pass "$repo" "apps/${app_name} allowedDevOrigins (main + worktree wildcard)"
+    elif [[ "$has_main" == "true" ]]; then
+      fail "$repo" "apps/${app_name} allowedDevOrigins" "missing worktree wildcard \"${expected_wildcard}\""
+    elif grep -q "allowedDevOrigins" "$next_config"; then
+      fail "$repo" "apps/${app_name} allowedDevOrigins" "set but missing \"${expected_main}\" + \"${expected_wildcard}\""
     else
       fail "$repo" "apps/${app_name} allowedDevOrigins" "not found in $(basename "$next_config")"
     fi
