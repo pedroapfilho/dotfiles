@@ -82,6 +82,18 @@ for repo in "${SCOPED_REPOS[@]}"; do
   else
     fail "$repo" "missing patterns" "${missing[*]}"
   fi
+
+  # Check for stray top-level per-app .gitignore files. These are usually
+  # `create-next-app` defaults that duplicate root patterns. Deeper files
+  # like apps/<name>/<dir>/.gitignore are allowed (e.g. logs/.gitignore for
+  # the empty-dir-keep pattern).
+  stray_apps=$(find "${REPO_PATH}/apps" -mindepth 2 -maxdepth 2 -name ".gitignore" 2>/dev/null || true)
+  if [[ -n "$stray_apps" ]]; then
+    while IFS= read -r f; do
+      rel="${f#${REPO_PATH}/}"
+      fail "$repo" "stray per-app gitignore" "$rel — root .gitignore covers all canonical patterns; delete this file"
+    done <<< "$stray_apps"
+  fi
 done
 
 summary
