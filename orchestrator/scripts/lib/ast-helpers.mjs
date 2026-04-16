@@ -56,6 +56,20 @@ export function* walkApps(repoPath, match, extraSkipDirs = []) {
   yield* walkFiles(appsDir, match, extraSkipDirs);
 }
 
+// Walk both `apps/` and `packages/` — the standard source scope for
+// monorepo-wide rules. Silently skips whichever root doesn't exist.
+export function* walkSource(repoPath, match, extraSkipDirs = []) {
+  for (const root of ["apps", "packages"]) {
+    const full = join(repoPath, root);
+    try {
+      statSync(full);
+    } catch {
+      continue;
+    }
+    yield* walkFiles(full, match, extraSkipDirs);
+  }
+}
+
 export const parseTsx = (ts, file) => {
   const src = readFileSync(file, "utf8");
   return ts.createSourceFile(file, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
