@@ -12,11 +12,18 @@ printf "${BOLD}Checking lint and format configuration...${RESET}\n\n"
 for repo in "${SCOPED_REPOS[@]}"; do
   REPO_PATH="$(repo_path "$repo")"
 
-  # .oxlintrc.json exists
-  if [[ -f "${REPO_PATH}/.oxlintrc.json" ]]; then
-    pass "$repo" ".oxlintrc.json exists"
+  # oxlint.config.ts exists (replaced .oxlintrc.json with the JS-API format that consumes the shared package)
+  if [[ -f "${REPO_PATH}/oxlint.config.ts" ]]; then
+    pass "$repo" "oxlint.config.ts exists"
   else
-    fail "$repo" ".oxlintrc.json" "file not found"
+    fail "$repo" "oxlint.config.ts" "file not found"
+  fi
+
+  # oxlint.config.ts must extend the shared awesomeness config
+  if [[ -f "${REPO_PATH}/oxlint.config.ts" ]] && grep -q "oxlint-config-awesomeness" "${REPO_PATH}/oxlint.config.ts"; then
+    pass "$repo" "oxlint.config.ts extends oxlint-config-awesomeness"
+  else
+    fail "$repo" "oxlint.config.ts extends" "no reference to oxlint-config-awesomeness"
   fi
 
   # .oxfmtrc.json exists
@@ -24,6 +31,11 @@ for repo in "${SCOPED_REPOS[@]}"; do
     pass "$repo" ".oxfmtrc.json exists"
   else
     fail "$repo" ".oxfmtrc.json" "file not found"
+  fi
+
+  # No legacy oxlint JSON config (superseded by oxlint.config.ts)
+  if [[ -f "${REPO_PATH}/.oxlintrc.json" ]]; then
+    fail "$repo" "legacy config" ".oxlintrc.json should not exist (use oxlint.config.ts)"
   fi
 
   # No legacy eslint configs
@@ -47,8 +59,8 @@ for repo in "${SCOPED_REPOS[@]}"; do
     fail "$repo" "oxlint-config-awesomeness" "not found in devDependencies"
   fi
 
-  # lint-staged config matches pattern
-  lint_staged_ts=$(pkg_get "$REPO_PATH" '.["lint-staged"]["*.{ts,tsx,js,jsx}"][0] // empty')
+  # lint-staged config matches pattern (glob excludes .d.ts since oxlint has nothing to check on type-only declarations)
+  lint_staged_ts=$(pkg_get "$REPO_PATH" '.["lint-staged"]["!(*.d).{ts,tsx,js,jsx}"][0] // empty')
   lint_staged_fmt=$(pkg_get "$REPO_PATH" '.["lint-staged"]["*.{ts,tsx,js,jsx,json,md}"][0] // empty')
 
   if [[ "$lint_staged_ts" == "oxlint" ]]; then
@@ -63,22 +75,9 @@ for repo in "${SCOPED_REPOS[@]}"; do
     fail "$repo" "lint-staged oxfmt" "expected 'oxfmt', got '$lint_staged_fmt'"
   fi
 
-  # Check sort rules (with divergence support for frow)
-  if [[ -f "${REPO_PATH}/.oxlintrc.json" ]]; then
-    sort_rules=("perfectionist/sort-interfaces" "perfectionist/sort-jsx-props" "perfectionist/sort-object-types" "perfectionist/sort-objects")
-    for rule in "${sort_rules[@]}"; do
-      rule_value=$(json_get "${REPO_PATH}/.oxlintrc.json" ".rules[\"$rule\"] // \"not-set\"")
-      if [[ "$rule_value" == "off" || "$rule_value" == "not-set" ]]; then
-        if has_divergence "$repo" "lint" "sort-rules-off"; then
-          skip "$repo" "$rule" "sort-rules-off"
-        else
-          fail "$repo" "$rule" "expected 'error', got '$rule_value'"
-        fi
-      else
-        pass "$repo" "$rule enabled"
-      fi
-    done
-  fi
+  # Sort rules now live in the shared package (oxlint-config-awesomeness/index.js).
+  # Per-consumer overrides may legitimately disable them in design-system dirs
+  # (e.g. packages/ui), so we no longer enforce per-repo enablement here.
 done
 
 summary
