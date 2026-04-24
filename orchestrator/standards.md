@@ -7,7 +7,7 @@ Standards enforced across all maintained monorepos. Acme is the template — upd
 | Repo | Path | Auth | Notes |
 |------|------|------|-------|
 | acme-monorepo | `~/dev/acme-monorepo` | Better Auth | Template. Source of truth. |
-| localcine-monorepo | `~/dev/localcine-monorepo` | Clerk | Live. i18n, Sentry, PostHog. |
+| localcine-monorepo | `~/dev/localcine-monorepo` | Better Auth | Live. i18n, Sentry, PostHog. |
 | collabtime-monorepo | `~/dev/collabtime-monorepo` | Better Auth + Stripe | Launching. Upstash Realtime. |
 | frow-monorepo | `~/dev/frow-monorepo` | Better Auth + Stripe | Launching. Hono API, BullMQ, AI/audio. |
 
@@ -68,7 +68,7 @@ Start with `docker compose up -d`. Stop with `docker compose stop`. Only run one
 |---------|---------|
 | `@repo/ui` | React component library. Tailwind `ui:` prefix. `cn()` with `experimentalParseClassName`. |
 | `@repo/db` | Prisma client + schema. |
-| `@repo/auth` | Auth config (Better Auth or Clerk). |
+| `@repo/auth` | Auth config (Better Auth). |
 | `@repo/config-typescript` | Shared `tsconfig` bases: `base.json`, `nextjs.json`, `server.json`, `library.json`. |
 | `@repo/config-tailwind` | Shared Tailwind config + `shared-styles.css`. |
 | `@repo/config-vitest` | Shared Vitest configs: `react.ts` (jsdom + RTL) and `node.ts`. |
@@ -229,7 +229,6 @@ Performance patterns enforced across all repos, based on Vercel's React Best Pra
 
 | Library | Gotcha |
 |---------|--------|
-| Clerk | Major bumps change hook APIs (`isLoaded` removal, strategy changes) |
 | Sentry | Deprecated options (`disableLogger`, `automaticVercelMonitors`) — remove if using Turbopack |
 | Stripe | Uses `export default Stripe`, not named export |
 | Prisma | Major bumps regenerate client — run `pnpm install` to trigger `postinstall` |
