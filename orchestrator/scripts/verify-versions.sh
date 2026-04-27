@@ -16,7 +16,7 @@ ACME_PKG_MANAGER=$(pkg_get "$ACME" '.packageManager')
 ACME_NODE_ENGINE=$(pkg_get "$ACME" '.engines.node')
 
 # devDependencies to compare
-DEV_DEPS=("turbo" "oxlint" "oxfmt" "oxlint-config-awesomeness" "husky" "lint-staged" "@playwright/test" "knip")
+DEV_DEPS=("turbo" "oxlint" "oxfmt" "oxlint-config-awesomeness" "husky" "lint-staged" "@playwright/test" "fallow")
 
 for repo in "${SCOPED_REPOS[@]}"; do
   [[ "$repo" == "$SOURCE_OF_TRUTH" ]] && continue

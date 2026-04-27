@@ -9,7 +9,7 @@ parse_repo_flag "$@"
 
 printf "${BOLD}Checking CI workflows...${RESET}\n\n"
 
-REQUIRED_WORKFLOWS=("test.yml" "lint.yml" "format.yml" "knip.yml" "e2e.yml")
+REQUIRED_WORKFLOWS=("test.yml" "lint.yml" "format.yml" "fallow.yml" "e2e.yml")
 EXPECTED_RUNNER="blacksmith-4vcpu-ubuntu-2404"
 EXPECTED_ACTIONS=("actions/checkout@v5" "pnpm/action-setup@v4" "actions/setup-node@v5")
 
@@ -53,7 +53,7 @@ for repo in "${SCOPED_REPOS[@]}"; do
   done
 
   # Check action versions in non-e2e workflows
-  for wf in "test.yml" "lint.yml" "format.yml" "knip.yml"; do
+  for wf in "test.yml" "lint.yml" "format.yml" "fallow.yml"; do
     wf_path="${WORKFLOWS_DIR}/${wf}"
     [[ ! -f "$wf_path" ]] && continue
 
