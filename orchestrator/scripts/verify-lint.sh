@@ -59,9 +59,12 @@ for repo in "${SCOPED_REPOS[@]}"; do
     fail "$repo" "oxlint-config-awesomeness" "not found in devDependencies"
   fi
 
-  # lint-staged config matches pattern (glob excludes .d.ts since oxlint has nothing to check on type-only declarations)
-  lint_staged_ts=$(pkg_get "$REPO_PATH" '.["lint-staged"]["!(*.d).{ts,tsx,js,jsx}"][0] // empty')
-  lint_staged_fmt=$(pkg_get "$REPO_PATH" '.["lint-staged"]["*.{ts,tsx,js,jsx,json,md}"][0] // empty')
+  # lint-staged config matches pattern. Glob covers every JS/TS extension that
+  # appears in source — including .mts/.cts/.mjs/.cjs (postcss configs, Vite
+  # configs, Electron-Forge configs). Excludes .d.ts since oxlint has nothing
+  # to check on type-only declarations.
+  lint_staged_ts=$(pkg_get "$REPO_PATH" '.["lint-staged"]["!(*.d).{ts,tsx,mts,cts,js,jsx,mjs,cjs}"][0] // empty')
+  lint_staged_fmt=$(pkg_get "$REPO_PATH" '.["lint-staged"]["*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,json,md}"][0] // empty')
 
   if [[ "$lint_staged_ts" == "oxlint" ]]; then
     pass "$repo" "lint-staged runs oxlint on TS/JS"

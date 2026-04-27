@@ -101,7 +101,7 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # aliases
-alias up="softwareupdate -l && brew update && brew upgrade && brew cleanup && pnpm -g upgrade && npx skills update"
+alias up="softwareupdate -l && brew update && brew upgrade && brew cleanup && npm upgrade -g && npx skills update -g"
 alias yolo="git add . && git commit --amend --no-edit && git push --force-with-lease"
 alias python="python3"
 alias pip="pip3"

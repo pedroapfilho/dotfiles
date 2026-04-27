@@ -7,6 +7,14 @@
       "type": "remote",
       "url": "http://127.0.0.1:3845/mcp",
       "enabled": false
+    },
+    "uidotsh": {
+      "type": "remote",
+      "url": "https://ui.sh/mcp?agent=opencode",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer R3pxOqu1F2QVISYe7TClZisGypuLC0m6"
+      }
     }
   }
 }

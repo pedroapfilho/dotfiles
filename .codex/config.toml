@@ -1,4 +1,4 @@
-model = "gpt-5.2-codex"
+model = "gpt-5.4"
 model_reasoning_effort = "medium"
 
 [features]
@@ -14,9 +14,31 @@ trust_level = "trusted"
 [projects."/Users/pedroapfilho/.codex"]
 trust_level = "trusted"
 
+[projects."/Users/pedroapfilho/dev/localcine-monorepo"]
+trust_level = "trusted"
+
+[projects."/Users/pedroapfilho/dev/frow-monorepo"]
+trust_level = "trusted"
+
+[projects."/Users/pedroapfilho/dev/printr"]
+trust_level = "trusted"
+
+[projects."/Users/pedroapfilho/dev/zora"]
+trust_level = "trusted"
+
 [mcp_servers.context7]
 url = "https://mcp.context7.com/mcp"
 headers = { CONTEXT7_API_KEY = "CONTEXT7_API_KEY" }
 
 [mcp_servers.figma-desktop]
 url = "http://127.0.0.1:3845/mcp"
+
+[notice.model_migrations]
+"gpt-5.2-codex" = "gpt-5.4"
+
+[mcp_servers.uidotsh]
+url = "https://ui.sh/mcp?agent=codex"
+http_headers = { Authorization = "Bearer R3pxOqu1F2QVISYe7TClZisGypuLC0m6" }
+
+[mcp_servers.uidotsh.tools.uidotsh_fetch]
+approval_mode = "approve"

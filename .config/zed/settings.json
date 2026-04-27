@@ -1,56 +1,33 @@
 {
-  "edit_predictions": {
-    "provider": "zed"
-  },
-  "agent": {
-    "default_model": {
-      "provider": "zed.dev",
-      "model": "claude-sonnet-4-6",
-      "enable_thinking": true,
-      "effort": "high"
-    },
-    "favorite_models": [
-      {
-        "provider": "zed.dev",
-        "model": "claude-sonnet-4-6",
-        "enable_thinking": false
-      }
-    ],
-    "single_file_review": false,
-    "model_parameters": []
-  },
-  "buffer_font_size": 11.0,
+  "buffer_font_size": 12.0,
   "ssh_connections": [
     {
       "host": "thinkcentre-1",
       "args": [],
       "projects": [
         {
-          "paths": [
-            "/home/pedroapfilho"
-          ]
-        }
-      ]
+          "paths": ["/home/pedroapfilho"],
+        },
+      ],
     },
     {
       "host": "itx-1",
       "args": [],
       "projects": [
         {
-          "paths": [
-            "/home/pedroapfilho/ACE-Step-1.5"
-          ]
-        }
-      ]
-    }
+          "paths": ["/home/pedroapfilho/ACE-Step-1.5"],
+        },
+      ],
+    },
   ],
   "icon_theme": "Zed (Default)",
   "show_edit_predictions": true,
   "redact_private_values": false,
   "colorize_brackets": true,
-  "disable_ai": false,
+  "disable_ai": true,
   "agent_buffer_font_size": 11,
   "git_panel": {
+    "dock": "right",
     "sort_by_path": true,
   },
   "context_servers": {},
@@ -60,14 +37,14 @@
   "theme": "Dracula Pro",
   "agent_servers": {
     "claude-acp": {
-      "type": "registry"
+      "type": "registry",
     },
     "codex-acp": {
-      "type": "registry"
+      "type": "registry",
     },
     "opencode": {
-      "type": "registry"
-    }
+      "type": "registry",
+    },
   },
   "vim_mode": true,
   "soft_wrap": "editor_width",
