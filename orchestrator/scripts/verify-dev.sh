@@ -12,7 +12,9 @@ printf "${BOLD}Checking dev environment...${RESET}\n\n"
 for repo in "${SCOPED_REPOS[@]}"; do
   REPO_PATH="$(repo_path "$repo")"
 
-  # Check portless in dev scripts (app-level package.json)
+  # Check portless in dev scripts (app-level package.json).
+  # Electron apps are exempt — they ship as native binaries, not HTTPS dev
+  # servers, so portless URLs don't apply.
   for app_dir in "${REPO_PATH}"/apps/*/; do
     [[ ! -d "$app_dir" ]] && continue
     app_name=$(basename "$app_dir")
@@ -20,9 +22,16 @@ for repo in "${SCOPED_REPOS[@]}"; do
     [[ ! -f "$app_pkg" ]] && continue
 
     dev_script=$(jq -r '.scripts.dev // empty' "$app_pkg")
-    if [[ -n "$dev_script" ]] && echo "$dev_script" | grep -q "portless"; then
+    if [[ -z "$dev_script" ]]; then
+      continue
+    fi
+    if echo "$dev_script" | grep -qE "electron-forge|electron \."; then
+      skip "$repo" "apps/${app_name} dev" "electron app — portless n/a"
+      continue
+    fi
+    if echo "$dev_script" | grep -q "portless"; then
       pass "$repo" "apps/${app_name} dev uses portless"
-    elif [[ -n "$dev_script" ]]; then
+    else
       fail "$repo" "apps/${app_name} dev" "missing portless — got: $dev_script"
     fi
   done
