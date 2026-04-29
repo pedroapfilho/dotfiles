@@ -35,9 +35,6 @@ prisma-client-api
 prisma-database-setup
 prisma-postgres
 react-doctor
-react-router-data-mode
-react-router-declarative-mode
-react-router-framework-mode
 react-useeffect
 remotion-best-practices
 requesting-code-review
