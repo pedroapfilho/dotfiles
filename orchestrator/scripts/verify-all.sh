@@ -26,7 +26,7 @@ run_verifier() {
   fi
 }
 
-for verifier in versions ci lint packages dev e2e ui naming theme base-styles primitives shared-ui tsconfig no-pointless-async form-field-in-effect-deps i18n-prefix-collision prisma-config root-scripts gitignore; do
+for verifier in versions ci lint packages dev e2e ui naming theme base-styles primitives shared-ui tsconfig no-pointless-async form-field-in-effect-deps i18n-prefix-collision prisma-config root-scripts gitignore no-tracked-ignored; do
   run_verifier "$verifier" "$@"
 done
 

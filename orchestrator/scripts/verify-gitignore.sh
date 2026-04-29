@@ -47,7 +47,7 @@ CANONICAL_PATTERNS=(
   "*.log"
   "**/src/generated/"
   "*.rdb"
-  "agents/"
+  "/agents/"
 )
 
 printf "${BOLD}Checking root .gitignore matches canonical shape...${RESET}\n\n"
