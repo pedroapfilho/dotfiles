@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ─────────────────────────────────────────────────
+# mcp-bootstrap — register Claude Code MCP servers
+# Reads tokens from the same secrets backend as ./sync
+# (1Password "Dotfiles Sync" item, or .sync_vault/ fallback)
+# ─────────────────────────────────────────────────
+
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+VAULT_DIR="${REPO_DIR}/.sync_vault"
+OP_ITEM="Dotfiles Sync"
+OP_VAULT="${DOTFILES_OP_VAULT:-Personal}"
+
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+DIM='\033[2m'
+RESET='\033[0m'
+
+# Registry: name|env_key|cmd|args (args space-separated)
+SERVERS=(
+  "hostinger|API_TOKEN|npx|-y hostinger-api-mcp@latest"
+)
+
+get_secret() {
+  local category="$1" key="$2"
+  if command -v op &>/dev/null && op whoami &>/dev/null 2>&1; then
+    local encoded
+    encoded="$(op read "op://${OP_VAULT}/${OP_ITEM}/${category}/${key}" 2>/dev/null || true)"
+    if [[ -n "$encoded" ]]; then
+      printf '%s' "$encoded" | base64 -d 2>/dev/null
+      return 0
+    fi
+  fi
+  local file="${VAULT_DIR}/${category}/${key}"
+  if [[ -f "$file" && -s "$file" ]]; then
+    cat "$file"
+    return 0
+  fi
+  return 1
+}
+
+if ! command -v claude &>/dev/null; then
+  printf "${RED}claude CLI not found in PATH${RESET}\n"
+  exit 1
+fi
+
+for entry in "${SERVERS[@]}"; do
+  IFS='|' read -r name env_key cmd args <<< "$entry"
+
+  if claude mcp get "$name" &>/dev/null; then
+    printf "${DIM}= %s (already registered)${RESET}\n" "$name"
+    continue
+  fi
+
+  token="$(get_secret mcp "${name}__${env_key}" || true)"
+  if [[ -z "${token:-}" ]]; then
+    printf "${YELLOW}! %s — no token at mcp/%s__%s${RESET}\n" "$name" "$name" "$env_key"
+    printf "  ${DIM}Save it to .sync_vault/mcp/%s__%s (one line, no trailing newline)${RESET}\n" "$name" "$env_key"
+    continue
+  fi
+
+  # shellcheck disable=SC2206
+  args_array=($args)
+  if claude mcp add "$name" -s user -e "${env_key}=${token}" -- "$cmd" "${args_array[@]}" &>/dev/null; then
+    printf "${GREEN}✓${RESET} %s registered\n" "$name"
+  else
+    printf "${RED}✗ %s — claude mcp add failed${RESET}\n" "$name"
+  fi
+done

@@ -8,7 +8,7 @@ Personal dotfiles configuration for macOS development environment.
 - **Node.js**: fnm (Fast Node Manager) with multiple Node versions
 - **Package Managers**: Homebrew, pnpm, bun
 - **Git**: Configuration with GPG signing via 1Password
-- **Claude Code**: Settings, agents, hooks, skills, and MCP configuration
+- **Claude Code**: Settings, agents, hooks, and skills (MCP servers registered via `./mcp-bootstrap`)
 - **Codex**: Configuration with MCP servers
 - **Counselors**: Multi-agent orchestration (Claude, Codex, Gemini in parallel)
 - **Zed**: Editor settings and keybindings
@@ -82,11 +82,17 @@ The `sync` script manages bidirectional dotfile synchronization between this rep
    ./sync --push
    ```
 
-7. **Add your personal tokens to `~/.zshrc`**
+7. **Register Claude Code MCP servers**:
+   ```bash
+   # Reads tokens from .sync_vault/ (or 1Password) and runs `claude mcp add`
+   ./mcp-bootstrap
+   ```
 
-8. **Configure 1Password SSH agent** for Git commit signing
+8. **Add your personal tokens to `~/.zshrc`**
 
-9. **Restart your terminal** or run `source ~/.zshrc`
+9. **Configure 1Password SSH agent** for Git commit signing
+
+10. **Restart your terminal** or run `source ~/.zshrc`
 
 ## Included Tools
 
