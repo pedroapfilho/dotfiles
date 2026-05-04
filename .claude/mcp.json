@@ -4,14 +4,13 @@
       "type": "http",
       "url": "http://127.0.0.1:3845/mcp"
     },
-    "karakeep": {
+    "hostinger": {
       "command": "npx",
       "args": [
-        "@karakeep/mcp"
+        "hostinger-api-mcp@latest"
       ],
       "env": {
-        "KARAKEEP_API_ADDR": "https://karakeep.homelab0.local",
-        "KARAKEEP_API_KEY": "KARAKEEP_API_KEY"
+        "API_TOKEN": "API_TOKEN"
       }
     }
   }
