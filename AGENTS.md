@@ -1,15 +1,15 @@
 # Dev Guidelines
 
 ## Core
-- do what's asked, no more
+- do what asked, no more
 - edit existing files; create new only if unavoidable
 - no docs (`*.md`, README) unless asked
-- use Context7 MCP for lib docs/setup automatically, don't wait to be asked
+- use Context7 MCP for lib docs/setup auto, don't wait
 
 ## TypeScript
 - exports at end; arrow fns; `const` > `let`; `types` > `interfaces`
 - naming: camelCase vars/fns, PascalCase types/classes, kebab-case files, MACRO_CASE constants
-- event handlers prefixed with `handle` (handleClick, handleSubmit)
+- event handlers prefix `handle` (handleClick, handleSubmit)
 - no `as any`; type guards/zod over assertions; strict mode; zero TS/lint errors
 - JSDoc for complex fns; WHY comments only, never WHAT
 - `Promise.allSettled` > `Promise.all`
@@ -17,17 +17,17 @@
 - don't: overuse useEffect, prop drill, monolithic components, reinvent established patterns
 
 ## React & Performance
-- `React.memo`/`useMemo`/`useCallback` to cut re-renders
-- code splitting at route + component level; trim bundle sizes
+- `React.memo`/`useMemo`/`useCallback` cut re-renders
+- code split route + component level; trim bundle sizes
 - TanStack Query for caching; WebP + lazy-load images
 - pick local vs global state consciously; normalize complex state; don't mutate state
 - ARIA labels, keyboard nav, focus management; WCAG
 
 ## Cognitive Load
-- extract complex conditionals into named variables; early returns over nested ifs
+- extract complex conditionals -> named vars; early returns over nested ifs
 - composition > inheritance; deep modules (simple interface, rich impl) > shallow
-- minimal language features; self-descriptive values; duplication is fine, bad abstractions aren't
-- max 400 lines per file; if exceeded, split into focused submodules
+- minimal lang features; self-descriptive values; duplication fine, bad abstractions aren't
+- max 400 lines/file; if exceed, split into focused submodules
 
 ## Security & Production
 - sanitize inputs (client + server); auth/authz; HTTPS + CORS; escape XSS
@@ -37,21 +37,21 @@
 
 ## Workflow
 - plan before building; fragments not sentences; list open questions
-- exact file/function names; file refs over copy-paste; clean git + meaningful commits
-- clarify requirements before building
+- exact file/fn names; file refs over copy-paste; clean git + meaningful commits
+- clarify reqs before building
 - don't ignore TS errors, lint errors, or skip planning
 
 ## Discipline
-- on correction: stop, re-read user's message, quote back the ask, confirm before proceeding
+- on correction: stop, re-read user msg, quote back ask, confirm before proceeding
 - read full file before editing; plan all changes; make ONE complete edit
-- if edited same file 3+ times, stop and re-read user's requirements
-- every few turns, re-read original request to check for drift
-- re-read user's last message before responding; follow through on every instruction
-- verify output addresses the ask before presenting
+- if edited same file 3+ times, stop, re-read user reqs
+- every few turns, re-read original req -> check drift
+- re-read user last msg before responding; follow through every instruction
+- verify output addresses ask before presenting
 - after 2 consecutive tool failures, stop; change approach; explain what failed
-- complete full task before stopping; if user asked for N things, do all N
-- when stuck, summarize attempts and ask for guidance instead of retrying
-- act sooner: read ≤3–5 files before making a change; basic understanding → change → iterate
+- complete full task before stopping; if user asked N things, do all N
+- when stuck, summarize attempts + ask guidance instead of retrying
+- act sooner: read ≤3–5 files before change; basic understanding -> change -> iterate
 
 ## Debugging
 - find modified files; root cause; gather logs/traces; form hypotheses, test them
@@ -68,8 +68,8 @@
 - don't disable zoom; don't block paste
 - hydration-safe inputs; spinner on loading buttons (show-delay 150–300ms, min visible 300–500ms)
 - Enter submits text input; ⌘/Ctrl+Enter submits textarea; validate after typing, not during
-- submit enabled until request starts → disable + spinner + idempotency key
-- inline errors; focus first error on submit; every control needs a `<label>`
+- submit enabled until req starts -> disable + spinner + idempotency key
+- inline errors; focus first error on submit; every control needs `<label>`
 - `autocomplete` + `name` + right `type`/`inputmode` on all inputs
 - warn on unsaved changes; allow 2FA paste; trim whitespace
 - URL = state (filters/tabs/pagination); Back/Forward restores scroll; navigation = `<a>`/`<Link>`
@@ -98,11 +98,11 @@
 
 ### Design
 - APCA contrast over WCAG 2; increase contrast on `:hover`/`:active`/`:focus`
-- `<meta name="theme-color">` = page background; color-blind-friendly palettes
+- `<meta name="theme-color">` = page bg; color-blind-friendly palettes
 - nested radii (child ≤ parent); layered shadows; hue-consistent borders/shadows/text
 
 ### Copywriting
-- active voice; errors explain the fix, not just the problem; unambiguous labels
+- active voice; errors explain fix, not just problem; unambiguous labels
 - placeholders: `YOUR_API_TOKEN_HERE` (strings), `0123456789` (numbers)
 - numerals for counts; non-breaking space between number + unit
 
@@ -116,8 +116,8 @@
 - no rhetorical setups: "What if [reframe]?", "Think about it:", "Here's what I mean:"
 - no AI intensifiers: deeply, truly, fundamentally, inherently, simply, literally, inevitably
 - no em-dashes before reveals; use periods or commas
-- vary sentence length; two-item lists over three; don't end every paragraph with a punchy one-liner
-- state facts directly; trust the reader; skip softening and hand-holding
+- vary sentence length; two-item lists over three; don't end every paragraph with punchy one-liner
+- state facts directly; trust reader; skip softening + hand-holding
 
 ## Browser Automation
 - `agent-browser open <url>` → `snapshot -i` → `click @e1`/`fill @e2 "text"` → re-snapshot

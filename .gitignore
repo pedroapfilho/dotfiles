@@ -1,3 +1,4 @@
 .DS_Store
 .conductor
 .sync_vault/
+*.original.md
