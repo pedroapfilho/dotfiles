@@ -29,6 +29,12 @@ for repo in "${SCOPED_REPOS[@]}"; do
       skip "$repo" "apps/${app_name} dev" "electron app — portless n/a"
       continue
     fi
+    # Background workers (BullMQ, queue consumers) have no HTTP surface —
+    # `tsdown --watch` builds and re-spawns the node process; portless n/a.
+    if echo "$dev_script" | grep -q "tsdown" && ! echo "$dev_script" | grep -qE "next |vite |hono"; then
+      skip "$repo" "apps/${app_name} dev" "background worker — portless n/a"
+      continue
+    fi
     if echo "$dev_script" | grep -q "portless"; then
       pass "$repo" "apps/${app_name} dev uses portless"
     else

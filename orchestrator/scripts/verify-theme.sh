@@ -25,12 +25,26 @@ for repo in "${SCOPED_REPOS[@]}"; do
   # Search under apps/*/src and packages/*/src for the banned pattern in .tsx/.ts/.css files.
   # Exclude React Email packages — CSS vars don't resolve in email clients, so
   # hardcoded colors are correct there.
-  offenders=$(grep -rE \
+  raw_offenders=$(grep -rE \
     --include="*.tsx" --include="*.ts" --include="*.css" \
     --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.turbo --exclude-dir=dist --exclude-dir=generated \
     --exclude-dir=email --exclude-dir=emails --exclude-dir=transactional \
     "\\b${BANNED_UTILITIES}-${BANNED_PALETTES}(-[0-9]+)?(\\/[0-9]+)?\\b" \
     "${REPO_PATH}/apps" "${REPO_PATH}/packages" 2>/dev/null || true)
+
+  # Drop matches in files that opt out via top-of-file magic comment
+  # `// theme-allow: hardcoded-colors` — for code-editor mockups, brand
+  # illustrations, etc. where literal palette colors are the design.
+  offenders=""
+  if [[ -n "$raw_offenders" ]]; then
+    while IFS= read -r line; do
+      file="${line%%:*}"
+      if ! head -5 "$file" 2>/dev/null | grep -q "theme-allow: hardcoded-colors"; then
+        offenders+="${line}"$'\n'
+      fi
+    done <<< "$raw_offenders"
+    offenders="${offenders%$'\n'}"
+  fi
 
   if [[ -z "$offenders" ]]; then
     pass "$repo" "no hardcoded neutral/gray/amber/etc. colors in source"

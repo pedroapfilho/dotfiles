@@ -4,7 +4,7 @@
 
 REPOS_DIR="${HOME}/dev"
 
-REPO_NAMES=("acme" "localcine" "collabtime" "frow")
+REPO_NAMES=("acme" "localcine" "collabtime" "frow" "easeia")
 SOURCE_OF_TRUTH="acme"
 
 # Lookup repo path by name (bash 3.2 compatible — no associative arrays)
@@ -15,6 +15,7 @@ repo_path() {
     localcine) echo "${REPOS_DIR}/localcine-monorepo" ;;
     collabtime) echo "${REPOS_DIR}/collabtime-monorepo" ;;
     frow)      echo "${REPOS_DIR}/frow-monorepo" ;;
+    easeia)    echo "${REPOS_DIR}/easeia-monorepo" ;;
     *) return 1 ;;
   esac
 }

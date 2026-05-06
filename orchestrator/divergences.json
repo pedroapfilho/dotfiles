@@ -1,1 +1,9 @@
-{}
+{
+  "easeia": {
+    "auth": ["cross-subdomain-cookies-opt-in"],
+    "root-scripts": ["db:seed-missing"]
+  },
+  "localcine": {
+    "auth": ["user-id-as-slug", "generate-id-false"]
+  }
+}
