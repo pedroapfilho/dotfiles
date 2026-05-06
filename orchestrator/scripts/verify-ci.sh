@@ -10,7 +10,8 @@ parse_repo_flag "$@"
 printf "${BOLD}Checking CI workflows...${RESET}\n\n"
 
 REQUIRED_WORKFLOWS=("test.yml" "lint.yml" "format.yml" "fallow.yml" "e2e.yml")
-EXPECTED_RUNNER="blacksmith-4vcpu-ubuntu-2404"
+EXPECTED_RUNNER="ubuntu-latest"
+EXPECTED_NODE_VERSION="24"
 EXPECTED_ACTIONS=("actions/checkout@v5" "pnpm/action-setup@v4" "actions/setup-node@v5")
 
 for repo in "${SCOPED_REPOS[@]}"; do
@@ -40,7 +41,23 @@ for repo in "${SCOPED_REPOS[@]}"; do
     fi
   done
 
-  # Check FORCE_JAVASCRIPT_ACTIONS_TO_NODE24
+  # Check node-version pinned to expected version (matches local)
+  for wf in "${REQUIRED_WORKFLOWS[@]}"; do
+    wf_path="${WORKFLOWS_DIR}/${wf}"
+    [[ ! -f "$wf_path" ]] && continue
+
+    if grep -qE "node-version:\s*[\"']?${EXPECTED_NODE_VERSION}[\"']?\s*$" "$wf_path"; then
+      pass "$repo" "${wf} node-version: ${EXPECTED_NODE_VERSION}"
+    else
+      actual=$(grep "node-version:" "$wf_path" | head -1 | sed 's/.*node-version:\s*//' | tr -d ' ')
+      fail "$repo" "${wf} node-version" "expected ${EXPECTED_NODE_VERSION}, got ${actual:-unset}"
+    fi
+  done
+
+  # Check FORCE_JAVASCRIPT_ACTIONS_TO_NODE24 — forces built-in JS actions
+  # (checkout, setup-node, etc.) to run on Node 24 instead of the action's
+  # declared runtime. Pairs with node-version above to keep runner node
+  # entirely on 24, matching local.
   for wf in "${REQUIRED_WORKFLOWS[@]}"; do
     wf_path="${WORKFLOWS_DIR}/${wf}"
     [[ ! -f "$wf_path" ]] && continue
