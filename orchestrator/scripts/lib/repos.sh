@@ -7,17 +7,62 @@ REPOS_DIR="${HOME}/dev"
 REPO_NAMES=("acme" "localcine" "collabtime" "frow" "easeia")
 SOURCE_OF_TRUTH="acme"
 
-# Lookup repo path by name (bash 3.2 compatible — no associative arrays)
+# --- Sibling-worktree resolution ----------------------------------------------
+#
+# When orchestrator runs from a non-canonical worktree (e.g. Conductor spawns
+# `~/conductor/orchestrator-feat-x/`), look for matching managed-repo worktrees
+# next to it (`~/conductor/<repo>-monorepo-feat-x/`). If found, those win over
+# the canonical `~/dev/<repo>-monorepo/`.
+#
+# Detection: this file is sourced as `<orch>/scripts/lib/repos.sh`. We walk two
+# `..` from `BASH_SOURCE[0]` to land at `<orch>` and confirm by checking that
+# `AGENTS.md` is present — otherwise we're being sourced from dotfiles or some
+# other location and should stay canonical-only.
+#
+# Suffix derivation: orchestrator basename `orchestrator-<x>` yields suffix
+# `-<x>`. Bare `orchestrator` yields empty suffix (canonical behavior).
+
+_REPOS_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_ORCH_ROOT="$(cd "${_REPOS_LIB_DIR}/../.." 2>/dev/null && pwd)"
+if [[ ! -f "${_ORCH_ROOT}/AGENTS.md" ]]; then
+  _ORCH_ROOT=""
+fi
+
+_ORCH_PARENT=""
+_ORCH_SUFFIX=""
+if [[ -n "$_ORCH_ROOT" ]]; then
+  _ORCH_PARENT="$(dirname "$_ORCH_ROOT")"
+  _ORCH_BASENAME="$(basename "$_ORCH_ROOT")"
+  case "$_ORCH_BASENAME" in
+    orchestrator)   _ORCH_SUFFIX="" ;;
+    orchestrator-*) _ORCH_SUFFIX="${_ORCH_BASENAME#orchestrator}" ;; # e.g. "-feat-x"
+    *)              _ORCH_SUFFIX="" ;;
+  esac
+fi
+
+# Resolve a managed-repo path: prefer sibling worktree if orchestrator is in
+# a non-canonical location and a matching `<repo>-monorepo<suffix>` exists.
+# Fallback: canonical `~/dev/<repo>-monorepo`.
 repo_path() {
-  local name="$1"
+  local name="$1" repo_dir
   case "$name" in
-    acme)      echo "${REPOS_DIR}/acme-monorepo" ;;
-    localcine) echo "${REPOS_DIR}/localcine-monorepo" ;;
-    collabtime) echo "${REPOS_DIR}/collabtime-monorepo" ;;
-    frow)      echo "${REPOS_DIR}/frow-monorepo" ;;
-    easeia)    echo "${REPOS_DIR}/easeia-monorepo" ;;
+    acme)       repo_dir="acme-monorepo" ;;
+    localcine)  repo_dir="localcine-monorepo" ;;
+    collabtime) repo_dir="collabtime-monorepo" ;;
+    frow)       repo_dir="frow-monorepo" ;;
+    easeia)     repo_dir="easeia-monorepo" ;;
     *) return 1 ;;
   esac
+
+  if [[ -n "$_ORCH_SUFFIX" ]]; then
+    local candidate="${_ORCH_PARENT}/${repo_dir}${_ORCH_SUFFIX}"
+    if [[ -d "$candidate" ]]; then
+      echo "$candidate"
+      return 0
+    fi
+  fi
+
+  echo "${REPOS_DIR}/${repo_dir}"
 }
 
 # Colors
