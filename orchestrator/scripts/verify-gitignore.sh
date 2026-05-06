@@ -39,6 +39,7 @@ CANONICAL_PATTERNS=(
   ".pnpm-debug.log*"
   ".env*"
   "!.env.example"
+  "!.env.agent-ci.example"
   ".idea"
   ".vscode"
   "*.swp"
@@ -48,6 +49,7 @@ CANONICAL_PATTERNS=(
   "**/src/generated/"
   "*.rdb"
   "/agents/"
+  ".openlogs/"
 )
 
 printf "${BOLD}Checking root .gitignore matches canonical shape...${RESET}\n\n"
