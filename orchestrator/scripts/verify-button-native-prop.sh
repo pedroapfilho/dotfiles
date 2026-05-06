@@ -51,7 +51,7 @@ for repo in "${SCOPED_REPOS[@]}"; do
       local $/;
       my $c = <$fh>;
       close $fh;
-      print "$f\n" if $c =~ m{<Button[\s\S]{0,500}?render=\{\s*<}s;
+      print "$f\n" if $c =~ m{<Button[^>]{0,500}?render=\{\s*<}s;
     ' {} 2>/dev/null)
   fi
 
