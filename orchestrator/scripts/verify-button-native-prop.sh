@@ -36,11 +36,24 @@ for repo in "${SCOPED_REPOS[@]}"; do
     fi
   fi
 
-  # Check 2: no <Button render={<...> callsites
-  callsites=$(grep -rEln "<Button[^>]*\brender=\{<" \
-    --include="*.tsx" --include="*.ts" \
-    --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.turbo --exclude-dir=dist \
-    "${REPO_PATH}/apps" 2>/dev/null || true)
+  # Check 2: no <Button render={<…> callsites. Multi-line tolerant — the
+  # JSX render prop often spans several lines, so a single-line grep misses
+  # them. Walk every .tsx/.ts in apps/ via perl with /s + whitespace before <.
+  files=$(find "${REPO_PATH}/apps" -type f \( -name "*.tsx" -o -name "*.ts" \) \
+    -not -path "*/node_modules/*" -not -path "*/.next/*" \
+    -not -path "*/.turbo/*" -not -path "*/dist/*" 2>/dev/null)
+
+  callsites=""
+  if [[ -n "$files" ]]; then
+    callsites=$(echo "$files" | xargs -I{} perl -e '
+      my $f = shift;
+      open my $fh, "<", $f or exit;
+      local $/;
+      my $c = <$fh>;
+      close $fh;
+      print "$f\n" if $c =~ m{<Button[\s\S]{0,500}?render=\{\s*<}s;
+    ' {} 2>/dev/null)
+  fi
 
   if [[ -z "$callsites" ]]; then
     pass "$repo" "no <Button render={<…/>}> callsites; wrapper minimal"
