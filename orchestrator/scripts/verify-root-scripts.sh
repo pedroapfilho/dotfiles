@@ -26,9 +26,6 @@ CANONICAL_SCRIPTS=(
   "db:push"
   "db:seed"
   "prepare"
-  "ci:local"
-  "ci:local:fast"
-  "ci:local:e2e"
 )
 
 printf "${BOLD}Checking canonical root scripts...${RESET}\n\n"
