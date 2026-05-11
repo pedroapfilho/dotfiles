@@ -11,6 +11,8 @@
 #   - terms/, privacy/, contact/, policies/, legal/, content/ (long-form copy)
 #   - **/seed*.ts, **/mock*.ts, **/*.test.{ts,tsx}, **/*.spec.{ts,tsx}
 #   - **/_components/photos*.tsx (alt text from CMS, not UI strings)
+#   - any file with an `i18n-leak-allowed:` marker comment (legitimate
+#     non-ASCII in regex char-classes, data constants, etc.)
 #
 # Only fires on repos that have an i18n setup (next-intl, react-intl, lingui).
 set -euo pipefail
@@ -72,13 +74,22 @@ for repo in "${SCOPED_REPOS[@]}"; do
   )
 
   # Find non-ASCII in apps/*/src
-  offenders=()
+  raw_offenders=()
   for app in "${REPO_PATH}"/apps/*/src; do
     [[ -d "$app" ]] || continue
     while IFS= read -r line; do
       [[ -z "$line" ]] && continue
-      offenders+=("$line")
+      raw_offenders+=("$line")
     done < <(LC_ALL=C grep -rEln $'[\x80-\xff]' "${excludes[@]}" --include='*.ts' --include='*.tsx' "$app" 2>/dev/null || true)
+  done
+
+  # Filter out files that opt out via `i18n-leak-allowed:` marker. Use it for
+  # files where non-ASCII is legitimate (regex char-classes, data constants).
+  offenders=()
+  for f in "${raw_offenders[@]}"; do
+    if ! grep -q "i18n-leak-allowed:" "$f" 2>/dev/null; then
+      offenders+=("$f")
+    fi
   done
 
   if [[ "${#offenders[@]}" -eq 0 ]]; then
