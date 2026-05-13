@@ -47,8 +47,12 @@ fail() {
 }
 
 skip() {
-  local repo="$1" check="$2" reason="$3"
-  printf "${YELLOW}SKIP${RESET} %s: %s (%s)\n" "$repo" "$check" "$reason"
+  local repo="$1" check="$2" reason="${3:-}"
+  if [[ -n "$reason" ]]; then
+    printf "${YELLOW}SKIP${RESET} %s: %s (%s)\n" "$repo" "$check" "$reason"
+  else
+    printf "${YELLOW}SKIP${RESET} %s: %s\n" "$repo" "$check"
+  fi
   SKIP_COUNT=$((SKIP_COUNT + 1))
 }
 
