@@ -79,20 +79,22 @@ for repo in "${SCOPED_REPOS[@]}"; do
     fi
   done
 
-  # Check Husky pre-commit. If `.husky/` doesn't exist at all, the repo
-  # has opted out of local pre-commit hooks (e.g. acme); skip rather than
-  # fail loudly. Repos that DO have `.husky/` must contain a working
-  # pre-commit script that runs lint-staged.
+  # Husky pre-commit hook is OPTIONAL fleet-wide. Acme dropped its
+  # `.husky/pre-commit` in commit 1d91dd5 with the rationale "local
+  # lint-staged hook no longer needed" — the husky + lint-staged install
+  # stays (so a hook can be re-added without re-installing), but the
+  # hook itself doesn't fire. Three valid states:
+  #   - no .husky/ dir at all → opted out cleanly
+  #   - .husky/ dir exists but no pre-commit → opted out, infra kept
+  #   - .husky/pre-commit exists → must run lint-staged
   if [[ ! -d "${REPO_PATH}/.husky" ]]; then
     skip "$repo" "no .husky/ — repo opted out of local pre-commit hooks"
-  elif [[ -f "${REPO_PATH}/.husky/pre-commit" ]]; then
-    if grep -q "lint-staged" "${REPO_PATH}/.husky/pre-commit"; then
-      pass "$repo" "husky pre-commit runs lint-staged"
-    else
-      fail "$repo" "husky pre-commit" "does not run lint-staged"
-    fi
+  elif [[ ! -f "${REPO_PATH}/.husky/pre-commit" ]]; then
+    skip "$repo" "no .husky/pre-commit — local hook intentionally disabled"
+  elif grep -q "lint-staged" "${REPO_PATH}/.husky/pre-commit"; then
+    pass "$repo" "husky pre-commit runs lint-staged"
   else
-    fail "$repo" "husky pre-commit" ".husky/pre-commit not found"
+    fail "$repo" "husky pre-commit" "does not run lint-staged"
   fi
 done
 
