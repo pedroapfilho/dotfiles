@@ -79,8 +79,13 @@ for repo in "${SCOPED_REPOS[@]}"; do
     fi
   done
 
-  # Check Husky pre-commit exists
-  if [[ -f "${REPO_PATH}/.husky/pre-commit" ]]; then
+  # Check Husky pre-commit. If `.husky/` doesn't exist at all, the repo
+  # has opted out of local pre-commit hooks (e.g. acme); skip rather than
+  # fail loudly. Repos that DO have `.husky/` must contain a working
+  # pre-commit script that runs lint-staged.
+  if [[ ! -d "${REPO_PATH}/.husky" ]]; then
+    skip "$repo" "no .husky/ — repo opted out of local pre-commit hooks"
+  elif [[ -f "${REPO_PATH}/.husky/pre-commit" ]]; then
     if grep -q "lint-staged" "${REPO_PATH}/.husky/pre-commit"; then
       pass "$repo" "husky pre-commit runs lint-staged"
     else

@@ -18,6 +18,15 @@ for repo in "${SCOPED_REPOS[@]}"; do
   REPO_PATH="$(repo_path "$repo")"
   WORKFLOWS_DIR="${REPO_PATH}/.github/workflows"
 
+  # Skip the whole repo if `.github/workflows/` doesn't exist — that's the
+  # signal that the repo intentionally opted out of GH Actions CI (e.g. acme
+  # moved off GH Actions runners). Per-workflow checks below would otherwise
+  # flood the report with file-not-found.
+  if [[ ! -d "$WORKFLOWS_DIR" ]]; then
+    skip "$repo" "no .github/workflows/ — repo opted out of GH Actions CI"
+    continue
+  fi
+
   # Check required workflow files exist
   for wf in "${REQUIRED_WORKFLOWS[@]}"; do
     if [[ -f "${WORKFLOWS_DIR}/${wf}" ]]; then
