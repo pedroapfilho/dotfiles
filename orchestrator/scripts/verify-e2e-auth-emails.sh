@@ -65,9 +65,14 @@ for repo in "${SCOPED_REPOS[@]}"; do
   if [[ ! -f "$AUTH_FILE" ]]; then
     skip "$repo" "auth-config-change-email" "packages/auth/src/server.ts missing"
   else
-    # Tolerant pattern: matches `changeEmail: {` followed eventually by
-    # `enabled: true` on a nearby line (within the same block).
-    if grep -Pzo '(?s)changeEmail\s*:\s*\{[^}]*enabled\s*:\s*true' "$AUTH_FILE" >/dev/null 2>&1; then
+    # Portable two-step match: find `changeEmail: {`, then look for
+    # `enabled: true` within the next few lines (the canonical shape
+    # puts `enabled: true` as the first property in the block).
+    # The previous `grep -Pzo '(?s)…'` form depended on GNU grep
+    # semantics for `-z`; on macOS where `grep` resolves to ugrep, `-z`
+    # means decompress and the match silently fails.
+    if grep -A 3 'changeEmail[[:space:]]*:[[:space:]]*{' "$AUTH_FILE" 2>/dev/null \
+        | grep -q 'enabled[[:space:]]*:[[:space:]]*true'; then
       pass "$repo" "user.changeEmail enabled in auth config"
     else
       fail "$repo" "user.changeEmail" "not enabled in packages/auth/src/server.ts (expect changeEmail: { enabled: true, ... })"
