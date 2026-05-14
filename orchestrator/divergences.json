@@ -1,6 +1,5 @@
 {
   "easeia": {
-    "auth": ["cross-subdomain-cookies-opt-in"],
     "root-scripts": ["db:seed-missing"]
   },
   "localcine": {
