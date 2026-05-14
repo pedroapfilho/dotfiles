@@ -1,32 +1,15 @@
-model = "gpt-5.4"
-model_reasoning_effort = "medium"
-web_search = "live"
+model = "gpt-5.5"
+model_reasoning_effort = "xhigh"
 
 [features]
+web_search_request = true
 shell_snapshot = true
+terminal_resize_reflow = true
 
 [env]
 DISABLE_ZOXIDE = "1"
 
-[projects."/Users/pedroapfilho/dev"]
-trust_level = "trusted"
-
-[projects."/Users/pedroapfilho/.codex"]
-trust_level = "trusted"
-
-[projects."/Users/pedroapfilho/dev/localcine-monorepo"]
-trust_level = "trusted"
-
-[projects."/Users/pedroapfilho/dev/frow-monorepo"]
-trust_level = "trusted"
-
-[projects."/Users/pedroapfilho/dev/printr"]
-trust_level = "trusted"
-
-[projects."/Users/pedroapfilho/dev/zora"]
-trust_level = "trusted"
-
-[projects."/Users/pedroapfilho/dev/zora-companion"]
+[projects."/Users/pedroapfilho/dev/*"]
 trust_level = "trusted"
 
 [mcp_servers.context7]
@@ -36,8 +19,9 @@ headers = { CONTEXT7_API_KEY = "CONTEXT7_API_KEY" }
 [mcp_servers.figma-desktop]
 url = "http://127.0.0.1:3845/mcp"
 
-[notice.model_migrations]
-"gpt-5.2-codex" = "gpt-5.4"
+[tui]
+status_line = ["model-with-reasoning", "current-dir"]
+status_line_use_colors = true
 
 [mcp_servers.uidotsh]
 url = "https://ui.sh/mcp?agent=codex"

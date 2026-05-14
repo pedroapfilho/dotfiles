@@ -27,7 +27,6 @@ prisma-postgres
 react-doctor
 remotion-best-practices
 resend
-seo-audit
 shadcn
 slack
 stop-slop
@@ -35,7 +34,6 @@ stripe
 tanstack-form
 tdd
 teach-impeccable
-typefully
 ui
 vercel
 vercel-composition-patterns
