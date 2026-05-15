@@ -1,8 +1,8 @@
 model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
+web_search = "live"
 
 [features]
-web_search_request = true
 shell_snapshot = true
 terminal_resize_reflow = true
 
